@@ -1,0 +1,22 @@
+leagues:
+  soccer:
+    - name: "Premier League"
+      fbref_id: "9"
+      country: "England"
+      seasons: ["2024-2025"]
+
+  basketball:
+    - name: "NBA"
+      seasons: ["2024-25"]
+
+rate_limits:
+  fbref:
+    requests_per_minute: 4
+  nba_api:
+    requests_per_minute: 15
+
+storage:
+  bronze_path: "data/bronze"
+  silver_path: "data/silver"
+  gold_path: "data/gold"
+  duckdb_path: "data/gold/sports_analytics.duckdb"

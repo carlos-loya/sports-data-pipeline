@@ -1,0 +1,64 @@
+[project]
+name = "sports-pipeline"
+version = "0.1.0"
+description = "Sports data collection and ETL pipeline with medallion architecture"
+readme = "README.md"
+authors = [
+    { name = "Carlos Loya", email = "loyacarlosa@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    # Data extraction
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    "nba_api>=1.4",
+    # Data processing
+    "pandas>=2.1",
+    "pyarrow>=15.0",
+    "duckdb>=1.1",
+    # Schema validation
+    "pydantic>=2.5",
+    "pandera>=0.20",
+    # Configuration
+    "pyyaml>=6.0",
+    "pydantic-settings>=2.1",
+    # Utilities
+    "tenacity>=8.2",
+    "structlog>=24.1",
+    "ratelimit>=2.2.1",
+    "cryptography>=46.0.5",
+    "zstandard>=0.22",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+airflow = ["apache-airflow>=2.8"]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "pytest-mock>=3.12",
+    "responses>=0.25",
+    "ruff>=0.3",
+    "mypy>=1.8",
+    "pre-commit>=3.6",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.11,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+markers = [
+    "integration: marks tests as integration tests",
+    "slow: marks tests as slow",
+]
