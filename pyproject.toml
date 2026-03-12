@@ -13,6 +13,7 @@ dependencies = [
     "beautifulsoup4>=4.12",
     "lxml>=5.0",
     "nba_api>=1.4",
+    "nflreadpy @ git+https://github.com/nflverse/nflreadpy.git",
     # Data processing
     "pandas>=2.1",
     "pyarrow>=15.0",

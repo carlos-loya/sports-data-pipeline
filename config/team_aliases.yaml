@@ -114,3 +114,69 @@ basketball:
   "LA Clippers":
     nba_api: "LA Clippers"
     abbreviation: "LAC"
+
+football:
+  "Arizona Cardinals":
+    nflreadpy: "ARI"
+  "Atlanta Falcons":
+    nflreadpy: "ATL"
+  "Baltimore Ravens":
+    nflreadpy: "BAL"
+  "Buffalo Bills":
+    nflreadpy: "BUF"
+  "Carolina Panthers":
+    nflreadpy: "CAR"
+  "Chicago Bears":
+    nflreadpy: "CHI"
+  "Cincinnati Bengals":
+    nflreadpy: "CIN"
+  "Cleveland Browns":
+    nflreadpy: "CLE"
+  "Dallas Cowboys":
+    nflreadpy: "DAL"
+  "Denver Broncos":
+    nflreadpy: "DEN"
+  "Detroit Lions":
+    nflreadpy: "DET"
+  "Green Bay Packers":
+    nflreadpy: "GB"
+  "Houston Texans":
+    nflreadpy: "HOU"
+  "Indianapolis Colts":
+    nflreadpy: "IND"
+  "Jacksonville Jaguars":
+    nflreadpy: "JAX"
+  "Kansas City Chiefs":
+    nflreadpy: "KC"
+  "Las Vegas Raiders":
+    nflreadpy: "LV"
+  "Los Angeles Chargers":
+    nflreadpy: "LAC"
+  "Los Angeles Rams":
+    nflreadpy: "LA"
+  "Miami Dolphins":
+    nflreadpy: "MIA"
+  "Minnesota Vikings":
+    nflreadpy: "MIN"
+  "New England Patriots":
+    nflreadpy: "NE"
+  "New Orleans Saints":
+    nflreadpy: "NO"
+  "New York Giants":
+    nflreadpy: "NYG"
+  "New York Jets":
+    nflreadpy: "NYJ"
+  "Philadelphia Eagles":
+    nflreadpy: "PHI"
+  "Pittsburgh Steelers":
+    nflreadpy: "PIT"
+  "San Francisco 49ers":
+    nflreadpy: "SF"
+  "Seattle Seahawks":
+    nflreadpy: "SEA"
+  "Tampa Bay Buccaneers":
+    nflreadpy: "TB"
+  "Tennessee Titans":
+    nflreadpy: "TEN"
+  "Washington Commanders":
+    nflreadpy: "WAS"

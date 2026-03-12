@@ -28,6 +28,7 @@ class RateLimitConfig(BaseModel):
 class RateLimitsConfig(BaseModel):
     fbref: RateLimitConfig = RateLimitConfig()
     nba_api: RateLimitConfig = RateLimitConfig(requests_per_minute=30)
+    nflreadpy: RateLimitConfig = RateLimitConfig(requests_per_minute=20)
 
 
 class StorageConfig(BaseModel):
@@ -40,6 +41,7 @@ class StorageConfig(BaseModel):
 class LeaguesConfig(BaseModel):
     soccer: list[LeagueConfig] = []
     basketball: list[LeagueConfig] = []
+    football: list[LeagueConfig] = []
 
 
 class Settings(BaseSettings):
