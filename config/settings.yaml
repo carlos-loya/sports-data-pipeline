@@ -25,11 +25,17 @@ leagues:
     - name: "NBA"
       seasons: ["2024-25", "2023-24"]
 
+  football:
+    - name: "NFL"
+      seasons: ["2024", "2023"]
+
 rate_limits:
   fbref:
     requests_per_minute: 8
   nba_api:
     requests_per_minute: 30
+  nflreadpy:
+    requests_per_minute: 20
 
 storage:
   bronze_path: "data/bronze"

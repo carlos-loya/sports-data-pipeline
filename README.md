@@ -6,11 +6,12 @@ Sports data collection and ETL pipeline with medallion architecture (Bronze → 
 
 - **FBref** — Soccer match results, team stats, player stats (Premier League, La Liga, Serie A, Bundesliga, Ligue 1)
 - **nba_api** — NBA game results, team stats, player stats
+- **nflreadpy** — NFL game schedules/scores and player stats (passing, rushing, receiving)
 
 ## Architecture
 
 ```
-FBref / nba_api  →  Bronze (raw Parquet)  →  Silver (cleaned)  →  Gold (DuckDB + feature tables)
+FBref / nba_api / nflreadpy  →  Bronze (raw Parquet)  →  Silver (cleaned)  →  Gold (DuckDB + feature tables)
 ```
 
 - **Bronze**: Raw extracts stored as partitioned Parquet files
@@ -41,7 +42,7 @@ DAGs:
 
 ```
 src/sports_pipeline/
-├── extractors/       # Data extraction (FBref, NBA)
+├── extractors/       # Data extraction (FBref, NBA, NFL)
 ├── transformers/     # Bronze → Silver transforms
 ├── loaders/          # DuckDB loader, gold builder, views
 ├── models/           # Pydantic schemas (bronze/silver/gold)
