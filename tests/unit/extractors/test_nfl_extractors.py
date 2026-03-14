@@ -8,6 +8,7 @@ import pandas as pd
 
 from sports_pipeline.extractors.nfl.game_extractor import NflGameExtractor
 from sports_pipeline.extractors.nfl.player_extractor import NflPlayerExtractor
+from sports_pipeline.extractors.nfl.team_extractor import NflTeamExtractor
 
 
 class TestNflGameExtractor:
@@ -128,3 +129,93 @@ class TestNflPlayerExtractor:
         ]
         for col in expected_cols:
             assert col in result.columns, f"Missing column: {col}"
+
+
+class TestNflTeamExtractor:
+    def test_extract_team_stats(self, sample_nfl_schedule):
+        client = MagicMock()
+        client.get_schedules.return_value = sample_nfl_schedule
+        extractor = NflTeamExtractor(client=client)
+
+        result = extractor.extract(season=2024)
+
+        assert not result.empty
+        # 5 unique teams in fixture: BAL, KC, PHI, GB, CIN
+        assert len(result) == 5
+        client.get_schedules.assert_called_once_with(season=2024)
+
+    def test_team_stats_columns(self, sample_nfl_schedule):
+        client = MagicMock()
+        client.get_schedules.return_value = sample_nfl_schedule
+        extractor = NflTeamExtractor(client=client)
+
+        result = extractor.extract(season=2024)
+
+        expected_cols = [
+            "extract_timestamp", "season", "team", "games_played",
+            "wins", "losses", "ties", "points_for", "points_against",
+            "point_differential", "home_wins", "home_losses",
+            "away_wins", "away_losses",
+        ]
+        for col in expected_cols:
+            assert col in result.columns, f"Missing column: {col}"
+
+    def test_wins_losses_correct(self, sample_nfl_schedule):
+        client = MagicMock()
+        client.get_schedules.return_value = sample_nfl_schedule
+        extractor = NflTeamExtractor(client=client)
+
+        result = extractor.extract(season=2024)
+
+        # KC: away W at BAL (27-20), away W at CIN (26-25) => 2 wins, 0 losses
+        kc = result[result["team"] == "KC"].iloc[0]
+        assert kc["wins"] == 2
+        assert kc["losses"] == 0
+        assert kc["away_wins"] == 2
+        assert kc["games_played"] == 2
+
+        # BAL: home L to KC (20-27) => 0 wins, 1 loss
+        bal = result[result["team"] == "BAL"].iloc[0]
+        assert bal["wins"] == 0
+        assert bal["losses"] == 1
+        assert bal["home_losses"] == 1
+
+    def test_point_differential(self, sample_nfl_schedule):
+        client = MagicMock()
+        client.get_schedules.return_value = sample_nfl_schedule
+        extractor = NflTeamExtractor(client=client)
+
+        result = extractor.extract(season=2024)
+
+        # PHI: home W (34-29) => PF=34, PA=29, diff=+5
+        phi = result[result["team"] == "PHI"].iloc[0]
+        assert phi["points_for"] == 34
+        assert phi["points_against"] == 29
+        assert phi["point_differential"] == 5
+
+    def test_extract_empty_season(self):
+        client = MagicMock()
+        client.get_schedules.return_value = pd.DataFrame()
+        extractor = NflTeamExtractor(client=client)
+
+        result = extractor.extract(season=2024)
+
+        assert result.empty
+
+    def test_extract_no_completed_games(self):
+        """Games without scores should be excluded."""
+        client = MagicMock()
+        client.get_schedules.return_value = pd.DataFrame([{
+            "game_id": "2024_01_KC_BAL",
+            "season": 2024,
+            "week": 1,
+            "home_team": "BAL",
+            "away_team": "KC",
+            "home_score": None,
+            "away_score": None,
+        }])
+        extractor = NflTeamExtractor(client=client)
+
+        result = extractor.extract(season=2024)
+
+        assert result.empty
