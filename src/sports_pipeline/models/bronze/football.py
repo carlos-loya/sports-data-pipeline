@@ -69,3 +69,22 @@ class BronzeNflPlayerGame(BaseModel):
     receiving_2pt_conversions: int | None = None
     # Fantasy
     fantasy_points: float | None = None
+
+
+class BronzeNflTeamStats(BaseModel):
+    """Raw team season stats derived from nflreadpy schedule data."""
+
+    extract_timestamp: datetime
+    season: int
+    team: str
+    games_played: int
+    wins: int
+    losses: int
+    ties: int = 0
+    points_for: int
+    points_against: int
+    point_differential: int
+    home_wins: int = 0
+    home_losses: int = 0
+    away_wins: int = 0
+    away_losses: int = 0

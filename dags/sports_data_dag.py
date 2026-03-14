@@ -1,4 +1,4 @@
-"""Airflow DAG for daily sports data ingestion (FBref + nba_api)."""
+"""Airflow DAG for daily sports data ingestion (FBref + nba_api + nflreadpy)."""
 
 from __future__ import annotations
 
@@ -95,6 +95,51 @@ def extract_fbref_teams(**context):
     return total
 
 
+def extract_nfl_games(**context):
+    from sports_pipeline.extractors.nfl.game_extractor import NflGameExtractor
+    from sports_pipeline.storage.parquet_store import write_parquet
+    from sports_pipeline.storage.paths import bronze_path
+    from datetime import date
+
+    season = context["params"].get("nfl_season", 2024)
+    extractor = NflGameExtractor()
+    df = extractor.extract(season=season)
+    if not df.empty:
+        path = bronze_path("football", "games", str(season), date.today())
+        write_parquet(df, path)
+    return len(df)
+
+
+def extract_nfl_player_stats(**context):
+    from sports_pipeline.extractors.nfl.player_extractor import NflPlayerExtractor
+    from sports_pipeline.storage.parquet_store import write_parquet
+    from sports_pipeline.storage.paths import bronze_path
+    from datetime import date
+
+    season = context["params"].get("nfl_season", 2024)
+    extractor = NflPlayerExtractor()
+    df = extractor.extract(season=season)
+    if not df.empty:
+        path = bronze_path("football", "player_stats", str(season), date.today())
+        write_parquet(df, path)
+    return len(df)
+
+
+def extract_nfl_team_stats(**context):
+    from sports_pipeline.extractors.nfl.team_extractor import NflTeamExtractor
+    from sports_pipeline.storage.parquet_store import write_parquet
+    from sports_pipeline.storage.paths import bronze_path
+    from datetime import date
+
+    season = context["params"].get("nfl_season", 2024)
+    extractor = NflTeamExtractor()
+    df = extractor.extract(season=season)
+    if not df.empty:
+        path = bronze_path("football", "team_stats", str(season), date.today())
+        write_parquet(df, path)
+    return len(df)
+
+
 def transform_and_load(**context):
     from sports_pipeline.transformers.nba.game_transformer import NbaGameTransformer
     from sports_pipeline.transformers.soccer.match_transformer import SoccerMatchTransformer
@@ -128,6 +173,27 @@ def transform_and_load(**context):
     except Exception as e:
         print(f"Soccer transform/load error: {e}")
 
+    # Transform and load NFL
+    try:
+        from sports_pipeline.transformers.nfl.game_transformer import NflGameTransformer
+        from sports_pipeline.transformers.nfl.player_transformer import NflPlayerTransformer
+
+        football_bronze_dir = PROJECT_ROOT / get_settings().storage.bronze_path / "football"
+        if football_bronze_dir.exists():
+            football_df = read_parquet_dir(football_bronze_dir)
+            if not football_df.empty:
+                nfl_game_transformer = NflGameTransformer()
+                nfl_game_silver = nfl_game_transformer.transform(football_df)
+                if not nfl_game_silver.empty:
+                    loader.load_dataframe(nfl_game_silver, "nfl_games", mode="replace")
+
+                nfl_player_transformer = NflPlayerTransformer()
+                nfl_player_silver = nfl_player_transformer.transform(football_df)
+                if not nfl_player_silver.empty:
+                    loader.load_dataframe(nfl_player_silver, "nfl_players", mode="replace")
+    except Exception as e:
+        print(f"NFL transform/load error: {e}")
+
 
 def build_gold_features(**context):
     from sports_pipeline.loaders.gold_builder import GoldBuilder
@@ -148,7 +214,7 @@ with DAG(
     start_date=datetime(2024, 1, 1),
     catchup=False,
     tags=["sports", "ingestion"],
-    params={"season": "2024-25"},
+    params={"season": "2024-25", "nfl_season": 2024},
 ) as dag:
 
     with TaskGroup("nba_extraction") as nba_group:
@@ -161,7 +227,13 @@ with DAG(
         fbref_teams = PythonOperator(task_id="extract_fbref_teams", python_callable=extract_fbref_teams)
         fbref_matches >> fbref_teams  # Sequential due to rate limits
 
+    with TaskGroup("nfl_extraction") as nfl_group:
+        nfl_games = PythonOperator(task_id="extract_nfl_games", python_callable=extract_nfl_games)
+        nfl_players = PythonOperator(task_id="extract_nfl_player_stats", python_callable=extract_nfl_player_stats)
+        nfl_teams = PythonOperator(task_id="extract_nfl_team_stats", python_callable=extract_nfl_team_stats)
+        [nfl_games, nfl_players, nfl_teams]
+
     transform = PythonOperator(task_id="transform_and_load", python_callable=transform_and_load)
     gold = PythonOperator(task_id="build_gold_features", python_callable=build_gold_features)
 
-    [nba_group, soccer_group] >> transform >> gold
+    [nba_group, soccer_group, nfl_group] >> transform >> gold
