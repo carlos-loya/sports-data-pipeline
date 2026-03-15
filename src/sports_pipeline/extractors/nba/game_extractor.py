@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -42,7 +42,7 @@ class NbaGameExtractor(BaseExtractor):
 
     def _pair_games(self, df: pd.DataFrame, season: str) -> pd.DataFrame:
         """Pair team game logs into home/away game records."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         # The MATCHUP column contains "TEAM vs. OPP" for home, "TEAM @ OPP" for away
         df["is_home"] = df["MATCHUP"].str.contains("vs.", regex=False)
@@ -50,18 +50,22 @@ class NbaGameExtractor(BaseExtractor):
         home = df[df["is_home"]].copy()
         away = df[~df["is_home"]].copy()
 
-        home = home.rename(columns={
-            "GAME_ID": "game_id",
-            "GAME_DATE": "game_date",
-            "TEAM_ID": "home_team_id",
-            "TEAM_NAME": "home_team_name",
-            "PTS": "home_score",
-        })
-        away = away.rename(columns={
-            "TEAM_ID": "away_team_id",
-            "TEAM_NAME": "away_team_name",
-            "PTS": "away_score",
-        })
+        home = home.rename(
+            columns={
+                "GAME_ID": "game_id",
+                "GAME_DATE": "game_date",
+                "TEAM_ID": "home_team_id",
+                "TEAM_NAME": "home_team_name",
+                "PTS": "home_score",
+            }
+        )
+        away = away.rename(
+            columns={
+                "TEAM_ID": "away_team_id",
+                "TEAM_NAME": "away_team_name",
+                "PTS": "away_score",
+            }
+        )
 
         merged = home.merge(
             away[["GAME_ID", "away_team_id", "away_team_name", "away_score"]],
@@ -70,18 +74,20 @@ class NbaGameExtractor(BaseExtractor):
             how="inner",
         )
 
-        result = pd.DataFrame({
-            "extract_timestamp": now,
-            "season": season,
-            "game_id": merged["game_id"],
-            "game_date": pd.to_datetime(merged["game_date"]),
-            "home_team_id": merged["home_team_id"],
-            "home_team_name": merged["home_team_name"],
-            "away_team_id": merged["away_team_id"],
-            "away_team_name": merged["away_team_name"],
-            "home_score": merged["home_score"],
-            "away_score": merged["away_score"],
-            "status": "Final",
-        })
+        result = pd.DataFrame(
+            {
+                "extract_timestamp": now,
+                "season": season,
+                "game_id": merged["game_id"],
+                "game_date": pd.to_datetime(merged["game_date"]),
+                "home_team_id": merged["home_team_id"],
+                "home_team_name": merged["home_team_name"],
+                "away_team_id": merged["away_team_id"],
+                "away_team_name": merged["away_team_name"],
+                "home_score": merged["home_score"],
+                "away_score": merged["away_score"],
+                "status": "Final",
+            }
+        )
 
         return result

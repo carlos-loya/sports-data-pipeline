@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 class BronzeSoccerMatch(BaseModel):
     """Raw match data from FBref."""
+
     extract_timestamp: datetime
     season: str
     league: str
@@ -27,6 +28,7 @@ class BronzeSoccerMatch(BaseModel):
 
 class BronzeSoccerPlayerMatch(BaseModel):
     """Raw player match stats from FBref."""
+
     extract_timestamp: datetime
     season: str
     league: str
@@ -56,6 +58,7 @@ class BronzeSoccerPlayerMatch(BaseModel):
 
 class BronzeSoccerTeamSeason(BaseModel):
     """Raw team season stats from FBref."""
+
     extract_timestamp: datetime
     season: str
     league: str

@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 class SilverNbaGame(BaseModel):
     """Cleaned and normalized NBA game."""
+
     game_id: str
     season: str
     game_date: date
@@ -24,6 +25,7 @@ class SilverNbaGame(BaseModel):
 
 class SilverNbaPlayerGame(BaseModel):
     """Cleaned player game stats."""
+
     game_id: str
     season: str
     game_date: date

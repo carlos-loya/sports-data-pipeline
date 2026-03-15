@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 class SilverSoccerMatch(BaseModel):
     """Cleaned and normalized soccer match."""
+
     match_id: str
     season: str
     league: str
@@ -25,6 +26,7 @@ class SilverSoccerMatch(BaseModel):
 
 class SilverSoccerPlayerMatch(BaseModel):
     """Cleaned player match stats."""
+
     match_id: str
     season: str
     league: str

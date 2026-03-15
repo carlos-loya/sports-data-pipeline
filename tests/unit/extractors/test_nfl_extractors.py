@@ -115,16 +115,36 @@ class TestNflPlayerExtractor:
         result = extractor.extract(season=2024)
 
         expected_cols = [
-            "extract_timestamp", "season", "week", "player_id", "player_name",
-            "player_display_name", "team", "position",
-            "completions", "passing_attempts", "passing_yards", "passing_tds",
-            "interceptions", "sacks", "passing_air_yards", "passing_yards_after_catch",
+            "extract_timestamp",
+            "season",
+            "week",
+            "player_id",
+            "player_name",
+            "player_display_name",
+            "team",
+            "position",
+            "completions",
+            "passing_attempts",
+            "passing_yards",
+            "passing_tds",
+            "interceptions",
+            "sacks",
+            "passing_air_yards",
+            "passing_yards_after_catch",
             "passing_2pt_conversions",
-            "carries", "rushing_yards", "rushing_tds", "rushing_fumbles",
+            "carries",
+            "rushing_yards",
+            "rushing_tds",
+            "rushing_fumbles",
             "rushing_2pt_conversions",
-            "receptions", "targets", "receiving_yards", "receiving_tds",
-            "receiving_air_yards", "receiving_yards_after_catch",
-            "receiving_fumbles", "receiving_2pt_conversions",
+            "receptions",
+            "targets",
+            "receiving_yards",
+            "receiving_tds",
+            "receiving_air_yards",
+            "receiving_yards_after_catch",
+            "receiving_fumbles",
+            "receiving_2pt_conversions",
             "fantasy_points",
         ]
         for col in expected_cols:
@@ -152,10 +172,20 @@ class TestNflTeamExtractor:
         result = extractor.extract(season=2024)
 
         expected_cols = [
-            "extract_timestamp", "season", "team", "games_played",
-            "wins", "losses", "ties", "points_for", "points_against",
-            "point_differential", "home_wins", "home_losses",
-            "away_wins", "away_losses",
+            "extract_timestamp",
+            "season",
+            "team",
+            "games_played",
+            "wins",
+            "losses",
+            "ties",
+            "points_for",
+            "points_against",
+            "point_differential",
+            "home_wins",
+            "home_losses",
+            "away_wins",
+            "away_losses",
         ]
         for col in expected_cols:
             assert col in result.columns, f"Missing column: {col}"
@@ -205,15 +235,19 @@ class TestNflTeamExtractor:
     def test_extract_no_completed_games(self):
         """Games without scores should be excluded."""
         client = MagicMock()
-        client.get_schedules.return_value = pd.DataFrame([{
-            "game_id": "2024_01_KC_BAL",
-            "season": 2024,
-            "week": 1,
-            "home_team": "BAL",
-            "away_team": "KC",
-            "home_score": None,
-            "away_score": None,
-        }])
+        client.get_schedules.return_value = pd.DataFrame(
+            [
+                {
+                    "game_id": "2024_01_KC_BAL",
+                    "season": 2024,
+                    "week": 1,
+                    "home_team": "BAL",
+                    "away_team": "KC",
+                    "home_score": None,
+                    "away_score": None,
+                }
+            ]
+        )
         extractor = NflTeamExtractor(client=client)
 
         result = extractor.extract(season=2024)

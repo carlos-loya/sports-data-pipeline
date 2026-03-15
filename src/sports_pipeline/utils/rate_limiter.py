@@ -67,7 +67,5 @@ class AsyncTokenBucketRateLimiter:
     def _refill(self) -> None:
         now = time.monotonic()
         elapsed = now - self.last_refill
-        self.tokens = min(
-            self.max_tokens, self.tokens + elapsed * (self.rate / self.per)
-        )
+        self.tokens = min(self.max_tokens, self.tokens + elapsed * (self.rate / self.per))
         self.last_refill = now

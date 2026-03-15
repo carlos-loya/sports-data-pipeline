@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -44,7 +44,7 @@ class FbrefMatchExtractor(BaseExtractor):
 
     def _transform_raw(self, df: pd.DataFrame, season: str, league_name: str) -> pd.DataFrame:
         """Map FBref schedule table to bronze schema."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         # FBref schedule columns: Date, Time, Home, Score, Away, ...
         # Filter to rows that have a score (completed matches)
@@ -61,33 +61,39 @@ class FbrefMatchExtractor(BaseExtractor):
         completed["home_goals"] = pd.to_numeric(scores[0].str.strip(), errors="coerce")
         completed["away_goals"] = pd.to_numeric(scores[1].str.strip(), errors="coerce")
 
-        result = pd.DataFrame({
-            "extract_timestamp": now,
-            "season": season,
-            "league": league_name,
-            "match_date": pd.to_datetime(completed.get("Date", ""), errors="coerce"),
-            "home_team": completed.get("Home", ""),
-            "away_team": completed.get("Away", ""),
-            "home_goals": completed["home_goals"],
-            "away_goals": completed["away_goals"],
-            "home_xg": (
-                pd.to_numeric(completed.get("xG", ""), errors="coerce")
-                if "xG" in completed.columns else None
-            ),
-            "away_xg": (
-                pd.to_numeric(completed.get("xG.1", ""), errors="coerce")
-                if "xG.1" in completed.columns else None
-            ),
-            "venue": completed.get("Venue", None),
-            "referee": completed.get("Referee", None),
-            "attendance": (
-                pd.to_numeric(
-                    completed.get("Attendance", "").str.replace(",", ""),
-                    errors="coerce",
-                ) if "Attendance" in completed.columns else None
-            ),
-            "match_url": None,
-        })
+        result = pd.DataFrame(
+            {
+                "extract_timestamp": now,
+                "season": season,
+                "league": league_name,
+                "match_date": pd.to_datetime(completed.get("Date", ""), errors="coerce"),
+                "home_team": completed.get("Home", ""),
+                "away_team": completed.get("Away", ""),
+                "home_goals": completed["home_goals"],
+                "away_goals": completed["away_goals"],
+                "home_xg": (
+                    pd.to_numeric(completed.get("xG", ""), errors="coerce")
+                    if "xG" in completed.columns
+                    else None
+                ),
+                "away_xg": (
+                    pd.to_numeric(completed.get("xG.1", ""), errors="coerce")
+                    if "xG.1" in completed.columns
+                    else None
+                ),
+                "venue": completed.get("Venue", None),
+                "referee": completed.get("Referee", None),
+                "attendance": (
+                    pd.to_numeric(
+                        completed.get("Attendance", "").str.replace(",", ""),
+                        errors="coerce",
+                    )
+                    if "Attendance" in completed.columns
+                    else None
+                ),
+                "match_url": None,
+            }
+        )
 
         result = result.dropna(subset=["match_date", "home_team", "away_team"])
         self.log.info("extracted_fbref_matches", count=len(result))

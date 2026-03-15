@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -46,42 +46,44 @@ class NflPlayerExtractor(BaseExtractor):
 
     def _transform(self, df: pd.DataFrame, season: int) -> pd.DataFrame:
         """Map nflreadpy player stats columns to bronze schema."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
-        return pd.DataFrame({
-            "extract_timestamp": now,
-            "season": season,
-            "week": df["week"],
-            "player_id": df["player_id"],
-            "player_name": df["player_name"],
-            "player_display_name": df["player_display_name"],
-            "team": df.get("recent_team"),
-            "position": df.get("position"),
-            # Passing
-            "completions": df.get("completions"),
-            "passing_attempts": df.get("attempts"),
-            "passing_yards": df.get("passing_yards"),
-            "passing_tds": df.get("passing_tds"),
-            "interceptions": df.get("interceptions"),
-            "sacks": df.get("sacks"),
-            "passing_air_yards": df.get("passing_air_yards"),
-            "passing_yards_after_catch": df.get("passing_yards_after_catch"),
-            "passing_2pt_conversions": df.get("passing_2pt_conversions"),
-            # Rushing
-            "carries": df.get("carries"),
-            "rushing_yards": df.get("rushing_yards"),
-            "rushing_tds": df.get("rushing_tds"),
-            "rushing_fumbles": df.get("rushing_fumbles"),
-            "rushing_2pt_conversions": df.get("rushing_2pt_conversions"),
-            # Receiving
-            "receptions": df.get("receptions"),
-            "targets": df.get("targets"),
-            "receiving_yards": df.get("receiving_yards"),
-            "receiving_tds": df.get("receiving_tds"),
-            "receiving_air_yards": df.get("receiving_air_yards"),
-            "receiving_yards_after_catch": df.get("receiving_yards_after_catch"),
-            "receiving_fumbles": df.get("receiving_fumbles"),
-            "receiving_2pt_conversions": df.get("receiving_2pt_conversions"),
-            # Fantasy
-            "fantasy_points": df.get("fantasy_points"),
-        })
+        return pd.DataFrame(
+            {
+                "extract_timestamp": now,
+                "season": season,
+                "week": df["week"],
+                "player_id": df["player_id"],
+                "player_name": df["player_name"],
+                "player_display_name": df["player_display_name"],
+                "team": df.get("recent_team"),
+                "position": df.get("position"),
+                # Passing
+                "completions": df.get("completions"),
+                "passing_attempts": df.get("attempts"),
+                "passing_yards": df.get("passing_yards"),
+                "passing_tds": df.get("passing_tds"),
+                "interceptions": df.get("interceptions"),
+                "sacks": df.get("sacks"),
+                "passing_air_yards": df.get("passing_air_yards"),
+                "passing_yards_after_catch": df.get("passing_yards_after_catch"),
+                "passing_2pt_conversions": df.get("passing_2pt_conversions"),
+                # Rushing
+                "carries": df.get("carries"),
+                "rushing_yards": df.get("rushing_yards"),
+                "rushing_tds": df.get("rushing_tds"),
+                "rushing_fumbles": df.get("rushing_fumbles"),
+                "rushing_2pt_conversions": df.get("rushing_2pt_conversions"),
+                # Receiving
+                "receptions": df.get("receptions"),
+                "targets": df.get("targets"),
+                "receiving_yards": df.get("receiving_yards"),
+                "receiving_tds": df.get("receiving_tds"),
+                "receiving_air_yards": df.get("receiving_air_yards"),
+                "receiving_yards_after_catch": df.get("receiving_yards_after_catch"),
+                "receiving_fumbles": df.get("receiving_fumbles"),
+                "receiving_2pt_conversions": df.get("receiving_2pt_conversions"),
+                # Fantasy
+                "fantasy_points": df.get("fantasy_points"),
+            }
+        )

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -48,28 +48,30 @@ class FbrefTeamExtractor(BaseExtractor):
 
     def _transform_raw(self, df: pd.DataFrame, season: str, league_name: str) -> pd.DataFrame:
         """Map FBref team stats to bronze schema."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         # The "Squad" column contains the team name
         if "Squad" not in df.columns:
             return pd.DataFrame()
 
-        result = pd.DataFrame({
-            "extract_timestamp": now,
-            "season": season,
-            "league": league_name,
-            "team": df["Squad"],
-            "matches_played": pd.to_numeric(df.get("MP", 0), errors="coerce"),
-            "wins": pd.to_numeric(df.get("W", 0), errors="coerce"),
-            "draws": pd.to_numeric(df.get("D", 0), errors="coerce"),
-            "losses": pd.to_numeric(df.get("L", 0), errors="coerce"),
-            "goals_for": pd.to_numeric(df.get("GF", 0), errors="coerce"),
-            "goals_against": pd.to_numeric(df.get("GA", 0), errors="coerce"),
-            "goal_difference": pd.to_numeric(df.get("GD", 0), errors="coerce"),
-            "points": pd.to_numeric(df.get("Pts", 0), errors="coerce"),
-            "xg_for": pd.to_numeric(df.get("xG", pd.NA), errors="coerce"),
-            "xg_against": pd.to_numeric(df.get("xGA", pd.NA), errors="coerce"),
-        })
+        result = pd.DataFrame(
+            {
+                "extract_timestamp": now,
+                "season": season,
+                "league": league_name,
+                "team": df["Squad"],
+                "matches_played": pd.to_numeric(df.get("MP", 0), errors="coerce"),
+                "wins": pd.to_numeric(df.get("W", 0), errors="coerce"),
+                "draws": pd.to_numeric(df.get("D", 0), errors="coerce"),
+                "losses": pd.to_numeric(df.get("L", 0), errors="coerce"),
+                "goals_for": pd.to_numeric(df.get("GF", 0), errors="coerce"),
+                "goals_against": pd.to_numeric(df.get("GA", 0), errors="coerce"),
+                "goal_difference": pd.to_numeric(df.get("GD", 0), errors="coerce"),
+                "points": pd.to_numeric(df.get("Pts", 0), errors="coerce"),
+                "xg_for": pd.to_numeric(df.get("xG", pd.NA), errors="coerce"),
+                "xg_against": pd.to_numeric(df.get("xGA", pd.NA), errors="coerce"),
+            }
+        )
 
         result = result.dropna(subset=["team"])
         self.log.info("extracted_fbref_teams", count=len(result))

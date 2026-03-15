@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -39,32 +39,34 @@ class NbaPlayerExtractor(BaseExtractor):
 
     def _transform_raw(self, df: pd.DataFrame, season: str) -> pd.DataFrame:
         """Map raw nba_api columns to bronze schema."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         df["is_home"] = df["MATCHUP"].str.contains("vs.", regex=False)
 
-        return pd.DataFrame({
-            "extract_timestamp": now,
-            "season": season,
-            "game_id": df["Game_ID"],
-            "game_date": pd.to_datetime(df["GAME_DATE"]),
-            "player_id": df["Player_ID"],
-            "player_name": df["PLAYER_NAME"],
-            "team_id": df["TEAM_ID"],
-            "team_name": df["TEAM_NAME"],
-            "is_home": df["is_home"],
-            "minutes": df["MIN"],
-            "points": df["PTS"],
-            "rebounds": df["REB"],
-            "assists": df["AST"],
-            "steals": df["STL"],
-            "blocks": df["BLK"],
-            "turnovers": df["TOV"],
-            "field_goals_made": df["FGM"],
-            "field_goals_attempted": df["FGA"],
-            "three_pointers_made": df["FG3M"],
-            "three_pointers_attempted": df["FG3A"],
-            "free_throws_made": df["FTM"],
-            "free_throws_attempted": df["FTA"],
-            "plus_minus": df["PLUS_MINUS"],
-        })
+        return pd.DataFrame(
+            {
+                "extract_timestamp": now,
+                "season": season,
+                "game_id": df["Game_ID"],
+                "game_date": pd.to_datetime(df["GAME_DATE"]),
+                "player_id": df["Player_ID"],
+                "player_name": df["PLAYER_NAME"],
+                "team_id": df["TEAM_ID"],
+                "team_name": df["TEAM_NAME"],
+                "is_home": df["is_home"],
+                "minutes": df["MIN"],
+                "points": df["PTS"],
+                "rebounds": df["REB"],
+                "assists": df["AST"],
+                "steals": df["STL"],
+                "blocks": df["BLK"],
+                "turnovers": df["TOV"],
+                "field_goals_made": df["FGM"],
+                "field_goals_attempted": df["FGA"],
+                "three_pointers_made": df["FG3M"],
+                "three_pointers_attempted": df["FG3A"],
+                "free_throws_made": df["FTM"],
+                "free_throws_attempted": df["FTA"],
+                "plus_minus": df["PLUS_MINUS"],
+            }
+        )
