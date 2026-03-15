@@ -18,6 +18,10 @@ FBref / nba_api / nflreadpy  →  Bronze (raw Parquet)  →  Silver (cleaned)  �
 - **Silver**: Deduplicated, validated, and normalized data
 - **Gold**: DuckDB analytical tables with rolling form, head-to-head, and team summary views
 
+## Documentation
+
+- **[Data Dictionary](docs/data-dictionary.md)** — Complete reference for every table and column across Bronze, Silver, and Gold layers
+
 ## Quick Start
 
 ```bash
