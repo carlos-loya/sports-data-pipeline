@@ -31,12 +31,39 @@ make test          # Run tests
 make lint          # Lint check
 ```
 
+## Backfill
+
+Run the backfill script to populate historical data outside of Airflow:
+
+```bash
+# Backfill all sports, all configured seasons
+uv run python scripts/backfill.py
+
+# Single sport
+uv run python scripts/backfill.py --sport soccer
+
+# Specific sport and season
+uv run python scripts/backfill.py --sport football --season 2024
+
+# Re-run transform/load on existing bronze data (skip extraction)
+uv run python scripts/backfill.py --skip-extract
+
+# Extract + transform only, skip gold feature building
+uv run python scripts/backfill.py --skip-gold
+```
+
+Available sports: `soccer`, `basketball`, `football`, `all` (default).
+
 ## Airflow
+
+Requires Airflow 3.1+ (runs via Docker Compose with PostgreSQL backend):
 
 ```bash
 make airflow-up    # Start Airflow + Postgres
 make airflow-down  # Stop services
 ```
+
+Access the Airflow UI at `http://localhost:8080` (admin/admin).
 
 DAGs:
 - `sports_data_pipeline` — Daily ingestion at 06:00 UTC
