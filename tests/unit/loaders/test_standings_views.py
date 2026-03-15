@@ -110,6 +110,58 @@ def db(tmp_path):
     )
     loader.load_dataframe(nba_df, "nba_games", mode="replace")
 
+    # Insert sample NFL games
+    nfl_df = pd.DataFrame(
+        [
+            {
+                "game_id": "2024_01_KC_BAL",
+                "season": 2024,
+                "week": 1,
+                "game_date": "2024-09-05",
+                "home_team": "Baltimore Ravens",
+                "away_team": "Kansas City Chiefs",
+                "home_score": 20,
+                "away_score": 27,
+                "overtime": False,
+                "game_type": "REG",
+                "stadium": "M&T Bank Stadium",
+                "home_win": False,
+                "total_points": 47,
+            },
+            {
+                "game_id": "2024_01_GB_PHI",
+                "season": 2024,
+                "week": 1,
+                "game_date": "2024-09-06",
+                "home_team": "Philadelphia Eagles",
+                "away_team": "Green Bay Packers",
+                "home_score": 34,
+                "away_score": 29,
+                "overtime": False,
+                "game_type": "REG",
+                "stadium": "Lincoln Financial Field",
+                "home_win": True,
+                "total_points": 63,
+            },
+            {
+                "game_id": "2024_02_KC_CIN",
+                "season": 2024,
+                "week": 2,
+                "game_date": "2024-09-15",
+                "home_team": "Cincinnati Bengals",
+                "away_team": "Kansas City Chiefs",
+                "home_score": 25,
+                "away_score": 26,
+                "overtime": True,
+                "game_type": "REG",
+                "stadium": "Paycor Stadium",
+                "home_win": False,
+                "total_points": 51,
+            },
+        ]
+    )
+    loader.load_dataframe(nfl_df, "nfl_games", mode="replace")
+
     # Re-create views after data is loaded
     from sports_pipeline.loaders.views import refresh_views
 
@@ -237,3 +289,75 @@ class TestNbaHomeAwaySplits:
         assert splits.loc["Lakers", "home_wins"] == 2
         assert splits.loc["Lakers", "away_games"] == 1
         assert splits.loc["Lakers", "away_losses"] == 1
+
+
+class TestNflStandings:
+    def test_standings_has_all_teams(self, db):
+        result = db.query("SELECT * FROM gold.v_nfl_standings ORDER BY rank")
+        assert len(result) == 5
+        teams = set(result["team"])
+        assert teams == {
+            "Kansas City Chiefs",
+            "Baltimore Ravens",
+            "Philadelphia Eagles",
+            "Green Bay Packers",
+            "Cincinnati Bengals",
+        }
+
+    def test_standings_record_correct(self, db):
+        result = db.query("SELECT * FROM gold.v_nfl_standings ORDER BY rank")
+        standings = result.set_index("team")
+
+        # KC: away win @BAL, away win @CIN = 2-0
+        assert standings.loc["Kansas City Chiefs", "wins"] == 2
+        assert standings.loc["Kansas City Chiefs", "losses"] == 0
+
+        # PHI: home win vs GB = 1-0
+        assert standings.loc["Philadelphia Eagles", "wins"] == 1
+        assert standings.loc["Philadelphia Eagles", "losses"] == 0
+
+        # BAL: home loss vs KC = 0-1
+        assert standings.loc["Baltimore Ravens", "wins"] == 0
+        assert standings.loc["Baltimore Ravens", "losses"] == 1
+
+        # GB: away loss @PHI = 0-1
+        assert standings.loc["Green Bay Packers", "wins"] == 0
+        assert standings.loc["Green Bay Packers", "losses"] == 1
+
+        # CIN: home loss vs KC = 0-1
+        assert standings.loc["Cincinnati Bengals", "wins"] == 0
+        assert standings.loc["Cincinnati Bengals", "losses"] == 1
+
+    def test_standings_win_pct(self, db):
+        result = db.query("SELECT * FROM gold.v_nfl_standings ORDER BY rank")
+        standings = result.set_index("team")
+
+        assert standings.loc["Kansas City Chiefs", "win_pct"] == pytest.approx(1.0, abs=0.001)
+        assert standings.loc["Philadelphia Eagles", "win_pct"] == pytest.approx(1.0, abs=0.001)
+        assert standings.loc["Baltimore Ravens", "win_pct"] == pytest.approx(0.0, abs=0.001)
+
+    def test_standings_ranked_by_win_pct(self, db):
+        result = db.query("SELECT team, rank, win_pct FROM gold.v_nfl_standings ORDER BY rank")
+        # KC and PHI both 1.000 win_pct, KC has better point diff (+7 vs +5)
+        assert result.iloc[0]["team"] == "Kansas City Chiefs"
+        assert result.iloc[1]["team"] == "Philadelphia Eagles"
+
+    def test_standings_points(self, db):
+        result = db.query("SELECT * FROM gold.v_nfl_standings ORDER BY rank")
+        standings = result.set_index("team")
+
+        # KC: scored 27+26=53, allowed 20+25=45
+        assert standings.loc["Kansas City Chiefs", "points_for"] == 53
+        assert standings.loc["Kansas City Chiefs", "points_against"] == 45
+        assert standings.loc["Kansas City Chiefs", "point_differential"] == 8
+
+    def test_standings_home_away(self, db):
+        result = db.query("SELECT * FROM gold.v_nfl_standings ORDER BY rank")
+        standings = result.set_index("team")
+
+        # KC: 0 home games, 2 away wins
+        assert standings.loc["Kansas City Chiefs", "home_wins"] == 0
+        assert standings.loc["Kansas City Chiefs", "away_wins"] == 2
+
+        # PHI: 1 home win, 0 away games
+        assert standings.loc["Philadelphia Eagles", "home_wins"] == 1

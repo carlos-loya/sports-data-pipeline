@@ -500,6 +500,26 @@ Direct load of silver NBA games into DuckDB.
 | `home_win` | BOOLEAN | Yes | Home team won |
 | `total_points` | INTEGER | Yes | Combined score |
 
+#### `gold.nfl_games`
+
+Direct load of silver NFL games into DuckDB.
+
+| Column | SQL Type | Nullable | Description |
+|--------|----------|----------|-------------|
+| `game_id` | VARCHAR | No (PK) | Unique game identifier (e.g. `2024_01_KC_BAL`) |
+| `season` | INTEGER | Yes | NFL season year |
+| `week` | INTEGER | Yes | Week number |
+| `game_date` | DATE | Yes | Date played |
+| `home_team` | VARCHAR | No | Home team full name |
+| `away_team` | VARCHAR | No | Away team full name |
+| `home_score` | INTEGER | Yes | Home team final score |
+| `away_score` | INTEGER | Yes | Away team final score |
+| `overtime` | BOOLEAN | Yes | Whether game went to overtime |
+| `game_type` | VARCHAR | Yes | `REG`, `POST`, or `PRE` |
+| `stadium` | VARCHAR | Yes | Stadium name |
+| `home_win` | BOOLEAN | Yes | Home team won |
+| `total_points` | INTEGER | Yes | Combined score |
+
 #### `gold.nba_player_games`
 
 Direct load of silver NBA player game data.
@@ -684,6 +704,30 @@ Home vs away performance breakdown for soccer teams. One row per team per league
 | `away_goals_against` | int | Goals conceded away |
 | `away_xg_for` | float | xG away |
 | `away_xg_against` | float | xG against away |
+
+#### `gold.v_nfl_standings`
+
+Cumulative NFL standings. One row per team per season. Ranked by win percentage, then point differential.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `season` | int | NFL season year |
+| `rank` | int | Position in standings |
+| `team` | str | Team full name |
+| `games_played` | int | Total games (home + away) |
+| `wins` | int | Total wins |
+| `losses` | int | Total losses |
+| `ties` | int | Total ties |
+| `win_pct` | float | `wins / games_played` (3 decimal places) |
+| `home_wins` | int | Wins at home |
+| `home_losses` | int | Losses at home |
+| `away_wins` | int | Wins on the road |
+| `away_losses` | int | Losses on the road |
+| `points_for` | int | Total points scored |
+| `points_against` | int | Total points allowed |
+| `point_differential` | int | `points_for - points_against` |
+| `points_per_game` | float | Average points scored |
+| `points_allowed_per_game` | float | Average points allowed |
 
 #### `gold.v_nba_home_away_splits`
 

@@ -40,16 +40,15 @@ def sample_nba_game_log():
 
 @pytest.fixture
 def sample_nba_player_log():
-    """Sample nba_api PlayerGameLog response."""
+    """Sample nba_api PlayerGameLog response (matches real API — no PLAYER_NAME/TEAM columns)."""
     return [
         {
             "Game_ID": "0022400001",
             "GAME_DATE": "2024-10-22",
             "Player_ID": 2544,
-            "PLAYER_NAME": "LeBron James",
-            "TEAM_ID": 1610612747,
-            "TEAM_NAME": "Los Angeles Lakers",
+            "SEASON_ID": "22024",
             "MATCHUP": "LAL vs. BOS",
+            "WL": "W",
             "MIN": 36.0,
             "PTS": 28,
             "REB": 8,

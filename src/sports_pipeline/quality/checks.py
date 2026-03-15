@@ -16,13 +16,3 @@ bronze_nba_game_schema = pa.DataFrameSchema(
     },
     strict=False,
 )
-
-bronze_kalshi_market_schema = pa.DataFrameSchema(
-    {
-        "ticker": Column(str, nullable=False),
-        "title": Column(str, nullable=False),
-        "yes_price": Column(float, Check.in_range(0, 1), nullable=False),
-        "no_price": Column(float, Check.in_range(0, 1), nullable=False),
-    },
-    strict=False,
-)
