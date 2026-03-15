@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -12,106 +12,110 @@ from sports_pipeline.transformers.nfl.player_transformer import NflPlayerTransfo
 
 def _sample_bronze_nfl_games():
     """Create sample bronze NFL game data."""
-    return pd.DataFrame([
-        {
-            "extract_timestamp": datetime.utcnow(),
-            "season": 2024,
-            "week": 1,
-            "game_id": "2024_01_KC_BAL",
-            "gameday": "2024-09-05",
-            "home_team": "BAL",
-            "away_team": "KC",
-            "home_score": 20,
-            "away_score": 27,
-            "overtime": False,
-            "game_type": "REG",
-            "stadium": "M&T Bank Stadium",
-        },
-        {
-            "extract_timestamp": datetime.utcnow(),
-            "season": 2024,
-            "week": 1,
-            "game_id": "2024_01_GB_PHI",
-            "gameday": "2024-09-06",
-            "home_team": "PHI",
-            "away_team": "GB",
-            "home_score": 34,
-            "away_score": 29,
-            "overtime": False,
-            "game_type": "REG",
-            "stadium": "Lincoln Financial Field",
-        },
-        {
-            "extract_timestamp": datetime.utcnow(),
-            "season": 2024,
-            "week": 2,
-            "game_id": "2024_02_KC_CIN",
-            "gameday": "2024-09-15",
-            "home_team": "CIN",
-            "away_team": "KC",
-            "home_score": 25,
-            "away_score": 26,
-            "overtime": True,
-            "game_type": "REG",
-            "stadium": "Paycor Stadium",
-        },
-    ])
+    return pd.DataFrame(
+        [
+            {
+                "extract_timestamp": datetime.now(UTC),
+                "season": 2024,
+                "week": 1,
+                "game_id": "2024_01_KC_BAL",
+                "gameday": "2024-09-05",
+                "home_team": "BAL",
+                "away_team": "KC",
+                "home_score": 20,
+                "away_score": 27,
+                "overtime": False,
+                "game_type": "REG",
+                "stadium": "M&T Bank Stadium",
+            },
+            {
+                "extract_timestamp": datetime.now(UTC),
+                "season": 2024,
+                "week": 1,
+                "game_id": "2024_01_GB_PHI",
+                "gameday": "2024-09-06",
+                "home_team": "PHI",
+                "away_team": "GB",
+                "home_score": 34,
+                "away_score": 29,
+                "overtime": False,
+                "game_type": "REG",
+                "stadium": "Lincoln Financial Field",
+            },
+            {
+                "extract_timestamp": datetime.now(UTC),
+                "season": 2024,
+                "week": 2,
+                "game_id": "2024_02_KC_CIN",
+                "gameday": "2024-09-15",
+                "home_team": "CIN",
+                "away_team": "KC",
+                "home_score": 25,
+                "away_score": 26,
+                "overtime": True,
+                "game_type": "REG",
+                "stadium": "Paycor Stadium",
+            },
+        ]
+    )
 
 
 def _sample_bronze_nfl_players():
     """Create sample bronze NFL player game data."""
-    return pd.DataFrame([
-        {
-            "extract_timestamp": datetime.utcnow(),
-            "season": 2024,
-            "week": 1,
-            "player_id": "00-0036442",
-            "player_name": "P.Mahomes",
-            "player_display_name": "Patrick Mahomes",
-            "team": "KC",
-            "position": "QB",
-            "completions": 20,
-            "passing_attempts": 28,
-            "passing_yards": 291.0,
-            "passing_tds": 1,
-            "interceptions": 0,
-            "sacks": 2,
-            "carries": 3,
-            "rushing_yards": 24.0,
-            "rushing_tds": 0,
-            "rushing_fumbles": 0,
-            "receptions": 0,
-            "targets": 0,
-            "receiving_yards": 0.0,
-            "receiving_tds": 0,
-            "fantasy_points": 19.64,
-        },
-        {
-            "extract_timestamp": datetime.utcnow(),
-            "season": 2024,
-            "week": 1,
-            "player_id": "00-0039337",
-            "player_name": "J.Hurts",
-            "player_display_name": "Jalen Hurts",
-            "team": "PHI",
-            "position": "QB",
-            "completions": 18,
-            "passing_attempts": 33,
-            "passing_yards": 278.0,
-            "passing_tds": 2,
-            "interceptions": 0,
-            "sacks": 1,
-            "carries": 13,
-            "rushing_yards": 84.0,
-            "rushing_tds": 2,
-            "rushing_fumbles": 0,
-            "receptions": 0,
-            "targets": 0,
-            "receiving_yards": 0.0,
-            "receiving_tds": 0,
-            "fantasy_points": 33.52,
-        },
-    ])
+    return pd.DataFrame(
+        [
+            {
+                "extract_timestamp": datetime.now(UTC),
+                "season": 2024,
+                "week": 1,
+                "player_id": "00-0036442",
+                "player_name": "P.Mahomes",
+                "player_display_name": "Patrick Mahomes",
+                "team": "KC",
+                "position": "QB",
+                "completions": 20,
+                "passing_attempts": 28,
+                "passing_yards": 291.0,
+                "passing_tds": 1,
+                "interceptions": 0,
+                "sacks": 2,
+                "carries": 3,
+                "rushing_yards": 24.0,
+                "rushing_tds": 0,
+                "rushing_fumbles": 0,
+                "receptions": 0,
+                "targets": 0,
+                "receiving_yards": 0.0,
+                "receiving_tds": 0,
+                "fantasy_points": 19.64,
+            },
+            {
+                "extract_timestamp": datetime.now(UTC),
+                "season": 2024,
+                "week": 1,
+                "player_id": "00-0039337",
+                "player_name": "J.Hurts",
+                "player_display_name": "Jalen Hurts",
+                "team": "PHI",
+                "position": "QB",
+                "completions": 18,
+                "passing_attempts": 33,
+                "passing_yards": 278.0,
+                "passing_tds": 2,
+                "interceptions": 0,
+                "sacks": 1,
+                "carries": 13,
+                "rushing_yards": 84.0,
+                "rushing_tds": 2,
+                "rushing_fumbles": 0,
+                "receptions": 0,
+                "targets": 0,
+                "receiving_yards": 0.0,
+                "receiving_tds": 0,
+                "fantasy_points": 33.52,
+            },
+        ]
+    )
 
 
 class TestNflGameTransformer:
@@ -171,20 +175,24 @@ class TestNflGameTransformer:
         assert result.empty
 
     def test_null_scores_handled(self):
-        df = pd.DataFrame([{
-            "extract_timestamp": datetime.utcnow(),
-            "season": 2024,
-            "week": 1,
-            "game_id": "2024_01_KC_BAL",
-            "gameday": "2024-09-05",
-            "home_team": "BAL",
-            "away_team": "KC",
-            "home_score": None,
-            "away_score": None,
-            "overtime": False,
-            "game_type": "REG",
-            "stadium": "M&T Bank Stadium",
-        }])
+        df = pd.DataFrame(
+            [
+                {
+                    "extract_timestamp": datetime.now(UTC),
+                    "season": 2024,
+                    "week": 1,
+                    "game_id": "2024_01_KC_BAL",
+                    "gameday": "2024-09-05",
+                    "home_team": "BAL",
+                    "away_team": "KC",
+                    "home_score": None,
+                    "away_score": None,
+                    "overtime": False,
+                    "game_type": "REG",
+                    "stadium": "M&T Bank Stadium",
+                }
+            ]
+        )
         transformer = NflGameTransformer()
         result = transformer.transform(df)
 

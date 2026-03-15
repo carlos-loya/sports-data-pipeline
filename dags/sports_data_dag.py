@@ -18,10 +18,11 @@ default_args = {
 
 
 def extract_nba_games(**context):
+    from datetime import date
+
     from sports_pipeline.extractors.nba.game_extractor import NbaGameExtractor
     from sports_pipeline.storage.parquet_store import write_parquet
     from sports_pipeline.storage.paths import bronze_path
-    from datetime import date
 
     season = context["params"].get("season", "2024-25")
     extractor = NbaGameExtractor()
@@ -33,10 +34,11 @@ def extract_nba_games(**context):
 
 
 def extract_nba_team_stats(**context):
+    from datetime import date
+
     from sports_pipeline.extractors.nba.team_extractor import NbaTeamExtractor
     from sports_pipeline.storage.parquet_store import write_parquet
     from sports_pipeline.storage.paths import bronze_path
-    from datetime import date
 
     season = context["params"].get("season", "2024-25")
     extractor = NbaTeamExtractor()
@@ -48,11 +50,12 @@ def extract_nba_team_stats(**context):
 
 
 def extract_fbref_matches(**context):
+    from datetime import date
+
+    from sports_pipeline.config import get_settings
     from sports_pipeline.extractors.fbref.match_extractor import FbrefMatchExtractor
     from sports_pipeline.storage.parquet_store import write_parquet
     from sports_pipeline.storage.paths import bronze_path
-    from sports_pipeline.config import get_settings
-    from datetime import date
 
     settings = get_settings()
     extractor = FbrefMatchExtractor()
@@ -65,18 +68,24 @@ def extract_fbref_matches(**context):
             league_name=league.name,
         )
         if not df.empty:
-            path = bronze_path("soccer", f"matches_{league.name.lower().replace(' ', '_')}", league.seasons[0], date.today())
+            path = bronze_path(
+                "soccer",
+                f"matches_{league.name.lower().replace(' ', '_')}",
+                league.seasons[0],
+                date.today(),
+            )
             write_parquet(df, path)
             total += len(df)
     return total
 
 
 def extract_fbref_teams(**context):
+    from datetime import date
+
+    from sports_pipeline.config import get_settings
     from sports_pipeline.extractors.fbref.team_extractor import FbrefTeamExtractor
     from sports_pipeline.storage.parquet_store import write_parquet
     from sports_pipeline.storage.paths import bronze_path
-    from sports_pipeline.config import get_settings
-    from datetime import date
 
     settings = get_settings()
     extractor = FbrefTeamExtractor()
@@ -89,17 +98,23 @@ def extract_fbref_teams(**context):
             league_name=league.name,
         )
         if not df.empty:
-            path = bronze_path("soccer", f"teams_{league.name.lower().replace(' ', '_')}", league.seasons[0], date.today())
+            path = bronze_path(
+                "soccer",
+                f"teams_{league.name.lower().replace(' ', '_')}",
+                league.seasons[0],
+                date.today(),
+            )
             write_parquet(df, path)
             total += len(df)
     return total
 
 
 def extract_nfl_games(**context):
+    from datetime import date
+
     from sports_pipeline.extractors.nfl.game_extractor import NflGameExtractor
     from sports_pipeline.storage.parquet_store import write_parquet
     from sports_pipeline.storage.paths import bronze_path
-    from datetime import date
 
     season = context["params"].get("nfl_season", 2024)
     extractor = NflGameExtractor()
@@ -111,10 +126,11 @@ def extract_nfl_games(**context):
 
 
 def extract_nfl_player_stats(**context):
+    from datetime import date
+
     from sports_pipeline.extractors.nfl.player_extractor import NflPlayerExtractor
     from sports_pipeline.storage.parquet_store import write_parquet
     from sports_pipeline.storage.paths import bronze_path
-    from datetime import date
 
     season = context["params"].get("nfl_season", 2024)
     extractor = NflPlayerExtractor()
@@ -126,10 +142,11 @@ def extract_nfl_player_stats(**context):
 
 
 def extract_nfl_team_stats(**context):
+    from datetime import date
+
     from sports_pipeline.extractors.nfl.team_extractor import NflTeamExtractor
     from sports_pipeline.storage.parquet_store import write_parquet
     from sports_pipeline.storage.paths import bronze_path
-    from datetime import date
 
     season = context["params"].get("nfl_season", 2024)
     extractor = NflTeamExtractor()
@@ -141,11 +158,11 @@ def extract_nfl_team_stats(**context):
 
 
 def transform_and_load(**context):
-    from sports_pipeline.transformers.nba.game_transformer import NbaGameTransformer
-    from sports_pipeline.transformers.soccer.match_transformer import SoccerMatchTransformer
+    from sports_pipeline.config import PROJECT_ROOT, get_settings
     from sports_pipeline.loaders.duckdb_loader import DuckDBLoader
     from sports_pipeline.storage.parquet_store import read_parquet_dir
-    from sports_pipeline.config import PROJECT_ROOT, get_settings
+    from sports_pipeline.transformers.nba.game_transformer import NbaGameTransformer
+    from sports_pipeline.transformers.soccer.match_transformer import SoccerMatchTransformer
 
     loader = DuckDBLoader()
 
@@ -216,21 +233,30 @@ with DAG(
     tags=["sports", "ingestion"],
     params={"season": "2024-25", "nfl_season": 2024},
 ) as dag:
-
     with TaskGroup("nba_extraction") as nba_group:
         nba_games = PythonOperator(task_id="extract_nba_games", python_callable=extract_nba_games)
-        nba_teams = PythonOperator(task_id="extract_nba_team_stats", python_callable=extract_nba_team_stats)
+        nba_teams = PythonOperator(
+            task_id="extract_nba_team_stats", python_callable=extract_nba_team_stats
+        )
         [nba_games, nba_teams]
 
     with TaskGroup("soccer_extraction") as soccer_group:
-        fbref_matches = PythonOperator(task_id="extract_fbref_matches", python_callable=extract_fbref_matches)
-        fbref_teams = PythonOperator(task_id="extract_fbref_teams", python_callable=extract_fbref_teams)
+        fbref_matches = PythonOperator(
+            task_id="extract_fbref_matches", python_callable=extract_fbref_matches
+        )
+        fbref_teams = PythonOperator(
+            task_id="extract_fbref_teams", python_callable=extract_fbref_teams
+        )
         fbref_matches >> fbref_teams  # Sequential due to rate limits
 
     with TaskGroup("nfl_extraction") as nfl_group:
         nfl_games = PythonOperator(task_id="extract_nfl_games", python_callable=extract_nfl_games)
-        nfl_players = PythonOperator(task_id="extract_nfl_player_stats", python_callable=extract_nfl_player_stats)
-        nfl_teams = PythonOperator(task_id="extract_nfl_team_stats", python_callable=extract_nfl_team_stats)
+        nfl_players = PythonOperator(
+            task_id="extract_nfl_player_stats", python_callable=extract_nfl_player_stats
+        )
+        nfl_teams = PythonOperator(
+            task_id="extract_nfl_team_stats", python_callable=extract_nfl_team_stats
+        )
         [nfl_games, nfl_players, nfl_teams]
 
     transform = PythonOperator(task_id="transform_and_load", python_callable=transform_and_load)

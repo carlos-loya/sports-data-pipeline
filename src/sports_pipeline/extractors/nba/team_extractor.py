@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -38,18 +38,20 @@ class NbaTeamExtractor(BaseExtractor):
 
     def _transform_raw(self, df: pd.DataFrame, season: str) -> pd.DataFrame:
         """Map raw nba_api columns to bronze schema."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
-        return pd.DataFrame({
-            "extract_timestamp": now,
-            "season": season,
-            "team_id": df["TEAM_ID"],
-            "team_name": df["TEAM_NAME"],
-            "games_played": df["GP"],
-            "wins": df["W"],
-            "losses": df["L"],
-            "offensive_rating": df.get("E_OFF_RATING"),
-            "defensive_rating": df.get("E_DEF_RATING"),
-            "net_rating": df.get("E_NET_RATING"),
-            "pace": df.get("E_PACE"),
-        })
+        return pd.DataFrame(
+            {
+                "extract_timestamp": now,
+                "season": season,
+                "team_id": df["TEAM_ID"],
+                "team_name": df["TEAM_NAME"],
+                "games_played": df["GP"],
+                "wins": df["W"],
+                "losses": df["L"],
+                "offensive_rating": df.get("E_OFF_RATING"),
+                "defensive_rating": df.get("E_DEF_RATING"),
+                "net_rating": df.get("E_NET_RATING"),
+                "pace": df.get("E_PACE"),
+            }
+        )

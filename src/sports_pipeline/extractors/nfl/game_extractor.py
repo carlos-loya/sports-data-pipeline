@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -46,27 +46,29 @@ class NflGameExtractor(BaseExtractor):
 
     def _transform(self, df: pd.DataFrame, season: int) -> pd.DataFrame:
         """Map nflreadpy schedule columns to bronze schema."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
-        return pd.DataFrame({
-            "extract_timestamp": now,
-            "season": season,
-            "week": df["week"],
-            "game_id": df["game_id"],
-            "gameday": pd.to_datetime(df["gameday"], errors="coerce"),
-            "gametime": df.get("gametime"),
-            "home_team": df["home_team"],
-            "away_team": df["away_team"],
-            "home_score": df.get("home_score"),
-            "away_score": df.get("away_score"),
-            "overtime": df.get("overtime", pd.Series(dtype="object")).notna()
-            & (df.get("overtime", pd.Series(dtype="object")) != ""),
-            "game_type": df.get("game_type"),
-            "location": df.get("location"),
-            "stadium": df.get("stadium"),
-            "roof": df.get("roof"),
-            "surface": df.get("surface"),
-            "spread_line": df.get("spread_line"),
-            "total_line": df.get("total_line"),
-            "result": df.get("result"),
-        })
+        return pd.DataFrame(
+            {
+                "extract_timestamp": now,
+                "season": season,
+                "week": df["week"],
+                "game_id": df["game_id"],
+                "gameday": pd.to_datetime(df["gameday"], errors="coerce"),
+                "gametime": df.get("gametime"),
+                "home_team": df["home_team"],
+                "away_team": df["away_team"],
+                "home_score": df.get("home_score"),
+                "away_score": df.get("away_score"),
+                "overtime": df.get("overtime", pd.Series(dtype="object")).notna()
+                & (df.get("overtime", pd.Series(dtype="object")) != ""),
+                "game_type": df.get("game_type"),
+                "location": df.get("location"),
+                "stadium": df.get("stadium"),
+                "roof": df.get("roof"),
+                "surface": df.get("surface"),
+                "spread_line": df.get("spread_line"),
+                "total_line": df.get("total_line"),
+                "result": df.get("result"),
+            }
+        )

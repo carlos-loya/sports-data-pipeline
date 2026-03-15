@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -45,7 +45,7 @@ class NflTeamExtractor(BaseExtractor):
 
     def _aggregate(self, df: pd.DataFrame, season: int) -> pd.DataFrame:
         """Aggregate game-level data into team season stats."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         teams: dict[str, dict] = {}
 
         for _, row in df.iterrows():
@@ -97,12 +97,14 @@ class NflTeamExtractor(BaseExtractor):
 
         rows = []
         for team, stats in teams.items():
-            rows.append({
-                "extract_timestamp": now,
-                "season": season,
-                "team": team,
-                "point_differential": stats["points_for"] - stats["points_against"],
-                **stats,
-            })
+            rows.append(
+                {
+                    "extract_timestamp": now,
+                    "season": season,
+                    "team": team,
+                    "point_differential": stats["points_for"] - stats["points_against"],
+                    **stats,
+                }
+            )
 
         return pd.DataFrame(rows)

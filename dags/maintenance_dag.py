@@ -17,6 +17,7 @@ default_args = {
 
 def vacuum_duckdb(**context):
     from sports_pipeline.loaders.duckdb_loader import DuckDBLoader
+
     loader = DuckDBLoader()
     loader.execute("VACUUM")
 
@@ -30,5 +31,4 @@ with DAG(
     catchup=False,
     tags=["maintenance"],
 ) as dag:
-
     vacuum = PythonOperator(task_id="vacuum_duckdb", python_callable=vacuum_duckdb)

@@ -29,29 +29,35 @@ class NbaGameTransformer(BaseTransformer):
             lambda x: self.normalizer.normalize_team(str(x), "basketball")
         )
 
-        silver = pd.DataFrame({
-            "game_id": df["game_id"],
-            "season": df["season"],
-            "game_date": pd.to_datetime(df["game_date"]).dt.date,
-            "home_team_id": df["home_team_id"].astype(int),
-            "home_team": df["home_team"],
-            "away_team_id": df["away_team_id"].astype(int),
-            "away_team": df["away_team"],
-            "home_score": pd.to_numeric(df["home_score"], errors="coerce").astype("Int64"),
-            "away_score": pd.to_numeric(df["away_score"], errors="coerce").astype("Int64"),
-        })
+        silver = pd.DataFrame(
+            {
+                "game_id": df["game_id"],
+                "season": df["season"],
+                "game_date": pd.to_datetime(df["game_date"]).dt.date,
+                "home_team_id": df["home_team_id"].astype(int),
+                "home_team": df["home_team"],
+                "away_team_id": df["away_team_id"].astype(int),
+                "away_team": df["away_team"],
+                "home_score": pd.to_numeric(df["home_score"], errors="coerce").astype("Int64"),
+                "away_score": pd.to_numeric(df["away_score"], errors="coerce").astype("Int64"),
+            }
+        )
 
         # Derive fields
         silver["home_win"] = silver.apply(
-            lambda r: r["home_score"] > r["away_score"]
-            if pd.notna(r["home_score"]) and pd.notna(r["away_score"])
-            else None,
+            lambda r: (
+                r["home_score"] > r["away_score"]
+                if pd.notna(r["home_score"]) and pd.notna(r["away_score"])
+                else None
+            ),
             axis=1,
         )
         silver["total_points"] = silver.apply(
-            lambda r: r["home_score"] + r["away_score"]
-            if pd.notna(r["home_score"]) and pd.notna(r["away_score"])
-            else None,
+            lambda r: (
+                r["home_score"] + r["away_score"]
+                if pd.notna(r["home_score"]) and pd.notna(r["away_score"])
+                else None
+            ),
             axis=1,
         )
 

@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 class GoldSoccerTeamForm(BaseModel):
     """Rolling team form metrics."""
+
     team: str
     league: str
     as_of_date: date
@@ -26,6 +27,7 @@ class GoldSoccerTeamForm(BaseModel):
 
 class GoldSoccerH2H(BaseModel):
     """Head-to-head record between two teams."""
+
     team_a: str
     team_b: str
     league: str

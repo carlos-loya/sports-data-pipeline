@@ -30,31 +30,37 @@ class NflGameTransformer(BaseTransformer):
             lambda x: self.normalizer.normalize_team(str(x), "football")
         )
 
-        silver = pd.DataFrame({
-            "game_id": df["game_id"],
-            "season": df["season"].astype(int),
-            "week": df["week"].astype(int),
-            "game_date": pd.to_datetime(df["gameday"], errors="coerce").dt.date,
-            "home_team": df["home_team_canonical"],
-            "away_team": df["away_team_canonical"],
-            "home_score": pd.to_numeric(df["home_score"], errors="coerce").astype("Int64"),
-            "away_score": pd.to_numeric(df["away_score"], errors="coerce").astype("Int64"),
-            "overtime": df["overtime"].astype(bool),
-            "game_type": df.get("game_type"),
-            "stadium": df.get("stadium"),
-        })
+        silver = pd.DataFrame(
+            {
+                "game_id": df["game_id"],
+                "season": df["season"].astype(int),
+                "week": df["week"].astype(int),
+                "game_date": pd.to_datetime(df["gameday"], errors="coerce").dt.date,
+                "home_team": df["home_team_canonical"],
+                "away_team": df["away_team_canonical"],
+                "home_score": pd.to_numeric(df["home_score"], errors="coerce").astype("Int64"),
+                "away_score": pd.to_numeric(df["away_score"], errors="coerce").astype("Int64"),
+                "overtime": df["overtime"].astype(bool),
+                "game_type": df.get("game_type"),
+                "stadium": df.get("stadium"),
+            }
+        )
 
         # Derive fields
         silver["home_win"] = silver.apply(
-            lambda r: r["home_score"] > r["away_score"]
-            if pd.notna(r["home_score"]) and pd.notna(r["away_score"])
-            else None,
+            lambda r: (
+                r["home_score"] > r["away_score"]
+                if pd.notna(r["home_score"]) and pd.notna(r["away_score"])
+                else None
+            ),
             axis=1,
         )
         silver["total_points"] = silver.apply(
-            lambda r: r["home_score"] + r["away_score"]
-            if pd.notna(r["home_score"]) and pd.notna(r["away_score"])
-            else None,
+            lambda r: (
+                r["home_score"] + r["away_score"]
+                if pd.notna(r["home_score"]) and pd.notna(r["away_score"])
+                else None
+            ),
             axis=1,
         )
 

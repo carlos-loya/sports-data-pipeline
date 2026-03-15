@@ -99,10 +99,8 @@ class FbrefParser:
             df.columns = headers
         elif len(headers) > 0:
             # Truncate or pad
-            padded = headers + [
-                f"col_{i}" for i in range(len(headers), df.shape[1])
-            ]
-            df.columns = padded[:df.shape[1]]
+            padded = headers + [f"col_{i}" for i in range(len(headers), df.shape[1])]
+            df.columns = padded[: df.shape[1]]
 
         # Replace empty strings with NaN
         df = df.replace("", pd.NA)

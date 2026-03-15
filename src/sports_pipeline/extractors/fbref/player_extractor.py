@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -56,24 +56,26 @@ class FbrefPlayerExtractor(BaseExtractor):
         combined = pd.concat(dfs, ignore_index=True)
         combined = combined[combined["Player"].notna()]
 
-        now = datetime.utcnow()
-        result = pd.DataFrame({
-            "extract_timestamp": now,
-            "season": season,
-            "league": league,
-            "match_date": None,
-            "player_name": combined.get("Player", ""),
-            "team": "",
-            "opponent": "",
-            "is_home": False,
-            "minutes": pd.to_numeric(combined.get("Min", 0), errors="coerce"),
-            "goals": pd.to_numeric(combined.get("Gls", 0), errors="coerce"),
-            "assists": pd.to_numeric(combined.get("Ast", 0), errors="coerce"),
-            "shots": pd.to_numeric(combined.get("Sh", 0), errors="coerce"),
-            "shots_on_target": pd.to_numeric(combined.get("SoT", 0), errors="coerce"),
-            "xg": pd.to_numeric(combined.get("xG", 0), errors="coerce"),
-            "xa": pd.to_numeric(combined.get("xAG", 0), errors="coerce"),
-        })
+        now = datetime.now(UTC)
+        result = pd.DataFrame(
+            {
+                "extract_timestamp": now,
+                "season": season,
+                "league": league,
+                "match_date": None,
+                "player_name": combined.get("Player", ""),
+                "team": "",
+                "opponent": "",
+                "is_home": False,
+                "minutes": pd.to_numeric(combined.get("Min", 0), errors="coerce"),
+                "goals": pd.to_numeric(combined.get("Gls", 0), errors="coerce"),
+                "assists": pd.to_numeric(combined.get("Ast", 0), errors="coerce"),
+                "shots": pd.to_numeric(combined.get("Sh", 0), errors="coerce"),
+                "shots_on_target": pd.to_numeric(combined.get("SoT", 0), errors="coerce"),
+                "xg": pd.to_numeric(combined.get("xG", 0), errors="coerce"),
+                "xa": pd.to_numeric(combined.get("xAG", 0), errors="coerce"),
+            }
+        )
 
         self.log.info("extracted_player_stats", count=len(result))
         return result

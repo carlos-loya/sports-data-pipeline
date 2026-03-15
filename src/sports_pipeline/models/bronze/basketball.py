@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 class BronzeNbaGame(BaseModel):
     """Raw game data from nba_api."""
+
     extract_timestamp: datetime
     season: str
     game_id: str
@@ -24,6 +25,7 @@ class BronzeNbaGame(BaseModel):
 
 class BronzeNbaPlayerGame(BaseModel):
     """Raw player game stats from nba_api."""
+
     extract_timestamp: datetime
     season: str
     game_id: str
@@ -51,6 +53,7 @@ class BronzeNbaPlayerGame(BaseModel):
 
 class BronzeNbaTeamStats(BaseModel):
     """Raw team advanced stats from nba_api."""
+
     extract_timestamp: datetime
     season: str
     team_id: int

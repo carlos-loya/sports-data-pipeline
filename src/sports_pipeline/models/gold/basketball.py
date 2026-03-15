@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 class GoldNbaTeamForm(BaseModel):
     """Rolling team form metrics."""
+
     team: str
     team_id: int
     as_of_date: date

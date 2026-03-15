@@ -40,20 +40,22 @@ class SoccerMatchTransformer(BaseTransformer):
         df["result"] = df.apply(self._derive_result, axis=1)
 
         # Select silver columns
-        silver = pd.DataFrame({
-            "match_id": df["match_id"],
-            "season": df["season"],
-            "league": df["league"],
-            "match_date": pd.to_datetime(df["match_date"]).dt.date,
-            "home_team": df["home_team"],
-            "away_team": df["away_team"],
-            "home_goals": df["home_goals"].astype("Int64"),
-            "away_goals": df["away_goals"].astype("Int64"),
-            "home_xg": pd.to_numeric(df.get("home_xg"), errors="coerce"),
-            "away_xg": pd.to_numeric(df.get("away_xg"), errors="coerce"),
-            "result": df["result"],
-            "venue": df.get("venue"),
-        })
+        silver = pd.DataFrame(
+            {
+                "match_id": df["match_id"],
+                "season": df["season"],
+                "league": df["league"],
+                "match_date": pd.to_datetime(df["match_date"]).dt.date,
+                "home_team": df["home_team"],
+                "away_team": df["away_team"],
+                "home_goals": df["home_goals"].astype("Int64"),
+                "away_goals": df["away_goals"].astype("Int64"),
+                "home_xg": pd.to_numeric(df.get("home_xg"), errors="coerce"),
+                "away_xg": pd.to_numeric(df.get("away_xg"), errors="coerce"),
+                "result": df["result"],
+                "venue": df.get("venue"),
+            }
+        )
 
         silver = deduplicate(silver, subset=["match_id"])
         self.log.info("transformed_soccer_matches", rows=len(silver))
