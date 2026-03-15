@@ -615,6 +615,96 @@ Home perspective summary of NBA games, grouped by team/season.
 | `avg_home_score` | float | Average points scored at home |
 | `avg_opponent_score` | float | Average opponent points at home |
 
+#### `gold.v_soccer_league_standings`
+
+Cumulative league table for soccer. One row per team per league per season. Ranked by points, then goal difference, then goals scored.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `league` | str | League name |
+| `season` | str | Season string |
+| `rank` | int | Position in the table |
+| `team` | str | Team name |
+| `matches_played` | int | Total matches (home + away) |
+| `wins` | int | Total wins |
+| `draws` | int | Total draws |
+| `losses` | int | Total losses |
+| `goals_for` | int | Total goals scored |
+| `goals_against` | int | Total goals conceded |
+| `goal_difference` | int | `goals_for - goals_against` |
+| `points` | int | `wins * 3 + draws` |
+| `xg_for` | float | Cumulative expected goals for |
+| `xg_against` | float | Cumulative expected goals against |
+| `xg_difference` | float | `xg_for - xg_against` |
+
+#### `gold.v_nba_standings`
+
+Cumulative NBA standings. One row per team per season. Ranked by win percentage.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `season` | str | NBA season string |
+| `rank` | int | Position in standings |
+| `team` | str | Team name |
+| `team_id` | int | NBA team ID |
+| `games_played` | int | Total games (home + away) |
+| `wins` | int | Total wins |
+| `losses` | int | Total losses |
+| `win_pct` | float | `wins / games_played` (3 decimal places) |
+| `home_wins` | int | Wins at home |
+| `home_losses` | int | Losses at home |
+| `away_wins` | int | Wins on the road |
+| `away_losses` | int | Losses on the road |
+| `points_per_game` | float | Average points scored |
+| `points_allowed_per_game` | float | Average points allowed |
+| `point_differential` | float | Average scoring margin |
+
+#### `gold.v_soccer_home_away_splits`
+
+Home vs away performance breakdown for soccer teams. One row per team per league per season.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `team` | str | Team name |
+| `league` | str | League name |
+| `season` | str | Season string |
+| `home_matches` | int | Matches played at home |
+| `home_wins` | int | Home wins |
+| `home_draws` | int | Home draws |
+| `home_losses` | int | Home losses |
+| `home_goals_for` | int | Goals scored at home |
+| `home_goals_against` | int | Goals conceded at home |
+| `home_xg_for` | float | xG at home |
+| `home_xg_against` | float | xG against at home |
+| `away_matches` | int | Matches played away |
+| `away_wins` | int | Away wins |
+| `away_draws` | int | Away draws |
+| `away_losses` | int | Away losses |
+| `away_goals_for` | int | Goals scored away |
+| `away_goals_against` | int | Goals conceded away |
+| `away_xg_for` | float | xG away |
+| `away_xg_against` | float | xG against away |
+
+#### `gold.v_nba_home_away_splits`
+
+Home vs away performance breakdown for NBA teams. One row per team per season.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `team` | str | Team name |
+| `team_id` | int | NBA team ID |
+| `season` | str | NBA season string |
+| `home_games` | int | Games played at home |
+| `home_wins` | int | Home wins |
+| `home_losses` | int | Home losses |
+| `home_avg_points_scored` | float | Average points at home |
+| `home_avg_points_allowed` | float | Average opponent points at home |
+| `away_games` | int | Games played on the road |
+| `away_wins` | int | Away wins |
+| `away_losses` | int | Away losses |
+| `away_avg_points_scored` | float | Average points on the road |
+| `away_avg_points_allowed` | float | Average opponent points on the road |
+
 ---
 
 ## Glossary
