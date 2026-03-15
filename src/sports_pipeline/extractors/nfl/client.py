@@ -55,7 +55,7 @@ class NflClient:
         """
         self._limiter.acquire()
         log.info("fetching_nfl_player_stats", season=season, summary_level=summary_level)
-        df = nflreadpy.load_player_stats(seasons=[season], stat_type=summary_level)
+        df = nflreadpy.load_player_stats(seasons=[season], summary_level=summary_level)
         if hasattr(df, "to_pandas"):
             df = df.to_pandas()
         return df
