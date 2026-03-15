@@ -61,6 +61,22 @@ CREATE TABLE IF NOT EXISTS gold.nba_games (
     total_points INTEGER
 );
 
+CREATE TABLE IF NOT EXISTS gold.nfl_games (
+    game_id VARCHAR PRIMARY KEY,
+    season INTEGER,
+    week INTEGER,
+    game_date DATE,
+    home_team VARCHAR NOT NULL,
+    away_team VARCHAR NOT NULL,
+    home_score INTEGER,
+    away_score INTEGER,
+    overtime BOOLEAN,
+    game_type VARCHAR,
+    stadium VARCHAR,
+    home_win BOOLEAN,
+    total_points INTEGER
+);
+
 CREATE TABLE IF NOT EXISTS gold.nba_player_games (
     game_id VARCHAR,
     season VARCHAR,
@@ -288,6 +304,54 @@ SELECT
 FROM home h
 FULL OUTER JOIN away a
     ON h.team = a.team AND h.team_id = a.team_id AND h.season = a.season;
+
+-- NFL standings: cumulative season record per team
+-- Uses nfl_games table which is created dynamically by the DAG loader.
+-- The view silently returns empty if the table does not exist yet.
+CREATE OR REPLACE VIEW gold.v_nfl_standings AS
+WITH team_games AS (
+    SELECT home_team AS team, season,
+        1 AS played,
+        CASE WHEN home_win THEN 1 ELSE 0 END AS win,
+        CASE WHEN home_score = away_score THEN 1 ELSE 0 END AS tie,
+        1 AS is_home,
+        home_score AS pts_scored, away_score AS pts_allowed
+    FROM gold.nfl_games
+    WHERE home_score IS NOT NULL
+    UNION ALL
+    SELECT away_team AS team, season,
+        1 AS played,
+        CASE WHEN NOT home_win AND home_score != away_score THEN 1 ELSE 0 END AS win,
+        CASE WHEN home_score = away_score THEN 1 ELSE 0 END AS tie,
+        0 AS is_home,
+        away_score AS pts_scored, home_score AS pts_allowed
+    FROM gold.nfl_games
+    WHERE home_score IS NOT NULL
+)
+SELECT
+    season,
+    ROW_NUMBER() OVER (
+        PARTITION BY season
+        ORDER BY SUM(win)::DOUBLE / NULLIF(SUM(played), 0) DESC,
+                 SUM(pts_scored) - SUM(pts_allowed) DESC
+    ) AS rank,
+    team,
+    SUM(played) AS games_played,
+    SUM(win) AS wins,
+    SUM(played) - SUM(win) - SUM(tie) AS losses,
+    SUM(tie) AS ties,
+    ROUND(SUM(win)::DOUBLE / NULLIF(SUM(played), 0), 3) AS win_pct,
+    SUM(CASE WHEN is_home = 1 THEN win ELSE 0 END) AS home_wins,
+    SUM(CASE WHEN is_home = 1 THEN 1 - win - tie ELSE 0 END) AS home_losses,
+    SUM(CASE WHEN is_home = 0 THEN win ELSE 0 END) AS away_wins,
+    SUM(CASE WHEN is_home = 0 THEN 1 - win - tie ELSE 0 END) AS away_losses,
+    SUM(pts_scored) AS points_for,
+    SUM(pts_allowed) AS points_against,
+    SUM(pts_scored) - SUM(pts_allowed) AS point_differential,
+    ROUND(AVG(pts_scored), 1) AS points_per_game,
+    ROUND(AVG(pts_allowed), 1) AS points_allowed_per_game
+FROM team_games
+GROUP BY season, team;
 """
 
 

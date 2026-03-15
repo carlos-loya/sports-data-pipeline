@@ -23,10 +23,15 @@ def write_parquet(df: pd.DataFrame, path: Path) -> Path:
 
 
 def read_parquet(path: Path) -> pd.DataFrame:
-    """Read a Parquet file into a DataFrame."""
+    """Read a single Parquet file into a DataFrame.
+
+    Uses ``ParquetFile`` to read the file directly, bypassing the dataset API
+    that infers Hive partition columns from directory names like ``season=2024``
+    and conflicts with columns of the same name inside the file.
+    """
     if not path.exists():
         raise FileNotFoundError(f"Parquet file not found: {path}")
-    return pq.read_table(path).to_pandas()
+    return pq.ParquetFile(str(path)).read().to_pandas()
 
 
 def read_parquet_dir(directory: Path, pattern: str = "*.parquet") -> pd.DataFrame:
@@ -34,5 +39,5 @@ def read_parquet_dir(directory: Path, pattern: str = "*.parquet") -> pd.DataFram
     files = sorted(directory.rglob(pattern))
     if not files:
         raise FileNotFoundError(f"No parquet files found in {directory}")
-    dfs = [pq.read_table(f).to_pandas() for f in files]
+    dfs = [pq.ParquetFile(str(f)).read().to_pandas() for f in files]
     return pd.concat(dfs, ignore_index=True)

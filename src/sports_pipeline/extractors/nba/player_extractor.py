@@ -17,12 +17,13 @@ class NbaPlayerExtractor(BaseExtractor):
         super().__init__()
         self.client = client or NbaApiClient()
 
-    def extract(self, player_id: int, season: str) -> pd.DataFrame:
+    def extract(self, player_id: int, season: str, player_name: str = "") -> pd.DataFrame:
         """Extract game log for a single player.
 
         Args:
             player_id: NBA player ID
             season: NBA season string, e.g. "2024-25"
+            player_name: Player's display name (the API response does not include it)
 
         Returns:
             DataFrame with bronze-level player game data.
@@ -35,13 +36,20 @@ class NbaPlayerExtractor(BaseExtractor):
             return pd.DataFrame()
 
         df = pd.DataFrame(raw)
-        return self._transform_raw(df, season)
+        return self._transform_raw(df, season, player_name)
 
-    def _transform_raw(self, df: pd.DataFrame, season: str) -> pd.DataFrame:
-        """Map raw nba_api columns to bronze schema."""
+    def _transform_raw(self, df: pd.DataFrame, season: str, player_name: str = "") -> pd.DataFrame:
+        """Map raw nba_api columns to bronze schema.
+
+        Note: The PlayerGameLog endpoint does not return PLAYER_NAME, TEAM_ID,
+        or TEAM_NAME. The player name must be passed by the caller, and the
+        team abbreviation is derived from the MATCHUP column.
+        """
         now = datetime.now(UTC)
 
         df["is_home"] = df["MATCHUP"].str.contains("vs.", regex=False)
+        # MATCHUP is like "LAL vs. HOU" or "LAL @ BOS" — team abbrev is first token
+        df["_team_abbr"] = df["MATCHUP"].str.split(r"\s+", n=1).str[0]
 
         return pd.DataFrame(
             {
@@ -50,9 +58,8 @@ class NbaPlayerExtractor(BaseExtractor):
                 "game_id": df["Game_ID"],
                 "game_date": pd.to_datetime(df["GAME_DATE"]),
                 "player_id": df["Player_ID"],
-                "player_name": df["PLAYER_NAME"],
-                "team_id": df["TEAM_ID"],
-                "team_name": df["TEAM_NAME"],
+                "player_name": player_name,
+                "team_name": df["_team_abbr"],
                 "is_home": df["is_home"],
                 "minutes": df["MIN"],
                 "points": df["PTS"],

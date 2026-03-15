@@ -39,13 +39,32 @@ class TestNbaPlayerExtractor:
         client.get_player_game_log.return_value = sample_nba_player_log
         extractor = NbaPlayerExtractor(client=client)
 
-        result = extractor.extract(player_id=2544, season="2024-25")
+        result = extractor.extract(player_id=2544, season="2024-25", player_name="LeBron James")
 
         assert not result.empty
         assert result.iloc[0]["player_name"] == "LeBron James"
+        assert result.iloc[0]["team_name"] == "LAL"
         assert result.iloc[0]["points"] == 28
         assert result.iloc[0]["rebounds"] == 8
         assert result.iloc[0]["assists"] == 10
+
+    def test_extract_derives_team_from_matchup(self, sample_nba_player_log):
+        client = MagicMock()
+        client.get_player_game_log.return_value = sample_nba_player_log
+        extractor = NbaPlayerExtractor(client=client)
+
+        result = extractor.extract(player_id=2544, season="2024-25")
+
+        assert result.iloc[0]["team_name"] == "LAL"
+        assert result.iloc[0]["is_home"] == True  # noqa: E712
+
+    def test_extract_empty_response(self):
+        client = MagicMock()
+        client.get_player_game_log.return_value = []
+        extractor = NbaPlayerExtractor(client=client)
+
+        result = extractor.extract(player_id=2544, season="2024-25")
+        assert result.empty
 
 
 class TestNbaTeamExtractor:
