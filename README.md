@@ -21,6 +21,7 @@ FBref / nba_api / nflreadpy  →  Bronze (raw Parquet)  →  Silver (cleaned)  �
 ## Documentation
 
 - **[Data Dictionary](docs/data-dictionary.md)** — Complete reference for every table and column across Bronze, Silver, and Gold layers
+- **[Power BI Guide](docs/powerbi-guide.md)** — How to import silver Parquet files into Power BI Desktop
 
 ## Quick Start
 

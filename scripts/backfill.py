@@ -13,7 +13,7 @@ from sports_pipeline.loaders.duckdb_loader import DuckDBLoader
 from sports_pipeline.loaders.gold_builder import GoldBuilder
 from sports_pipeline.loaders.views import refresh_views
 from sports_pipeline.storage.parquet_store import read_parquet_dir, write_parquet
-from sports_pipeline.storage.paths import bronze_path
+from sports_pipeline.storage.paths import bronze_path, silver_path
 from sports_pipeline.utils.logging import get_logger, setup_logging
 
 log = get_logger(__name__)
@@ -107,10 +107,12 @@ def extract_soccer(season_filter: str | None = None) -> int:
 def extract_basketball(season_filter: str | None = None) -> int:
     """Extract NBA data for configured seasons."""
     from sports_pipeline.extractors.nba.game_extractor import NbaGameExtractor
+    from sports_pipeline.extractors.nba.player_extractor import NbaPlayerExtractor
     from sports_pipeline.extractors.nba.team_extractor import NbaTeamExtractor
 
     settings = get_settings()
     game_extractor = NbaGameExtractor()
+    player_extractor = NbaPlayerExtractor()
     team_extractor = NbaTeamExtractor()
     total = 0
     today = date.today()
@@ -129,6 +131,16 @@ def extract_basketball(season_filter: str | None = None) -> int:
                     log.info("nba_games_extracted", rows=len(game_df))
             except Exception as e:
                 log.error("nba_game_extraction_failed", error=str(e))
+
+            try:
+                player_df = player_extractor.extract(season=season)
+                if not player_df.empty:
+                    path = bronze_path("basketball", "player_stats", season, today)
+                    write_parquet(player_df, path)
+                    total += len(player_df)
+                    log.info("nba_players_extracted", rows=len(player_df))
+            except Exception as e:
+                log.error("nba_player_extraction_failed", error=str(e))
 
             try:
                 team_df = team_extractor.extract(season=season)
@@ -198,6 +210,7 @@ def extract_football(season_filter: str | None = None) -> int:
 def transform_and_load() -> None:
     """Read bronze data, transform, and load into DuckDB gold tables."""
     from sports_pipeline.transformers.nba.game_transformer import NbaGameTransformer
+    from sports_pipeline.transformers.nba.player_transformer import NbaPlayerTransformer
     from sports_pipeline.transformers.nfl.game_transformer import NflGameTransformer
     from sports_pipeline.transformers.nfl.player_transformer import NflPlayerTransformer
     from sports_pipeline.transformers.soccer.match_transformer import SoccerMatchTransformer
@@ -205,49 +218,85 @@ def transform_and_load() -> None:
     settings = get_settings()
     loader = DuckDBLoader()
 
-    # Soccer
+    # Soccer matches
     try:
         soccer_dir = PROJECT_ROOT / settings.storage.bronze_path / "soccer"
         if soccer_dir.exists():
-            soccer_df = read_parquet_dir(soccer_dir)
+            soccer_df = read_parquet_dir(soccer_dir, pattern="matches_*.parquet")
             if not soccer_df.empty:
                 silver = SoccerMatchTransformer().transform(soccer_df)
                 if not silver.empty:
+                    write_parquet(silver, silver_path("soccer", "matches"))
                     loader.load_dataframe(silver, "soccer_matches", mode="replace")
                     log.info("soccer_loaded", rows=len(silver))
+    except FileNotFoundError:
+        log.info("no_soccer_bronze_data")
     except Exception as e:
         log.error("soccer_transform_load_failed", error=str(e))
 
-    # Basketball
+    # NBA games
     try:
         nba_dir = PROJECT_ROOT / settings.storage.bronze_path / "basketball"
         if nba_dir.exists():
-            nba_df = read_parquet_dir(nba_dir)
+            nba_df = read_parquet_dir(nba_dir, pattern="games.parquet")
             if not nba_df.empty:
                 silver = NbaGameTransformer().transform(nba_df)
                 if not silver.empty:
+                    write_parquet(silver, silver_path("basketball", "games"))
                     loader.load_dataframe(silver, "nba_games", mode="replace")
                     log.info("nba_loaded", rows=len(silver))
+    except FileNotFoundError:
+        log.info("no_nba_bronze_data")
     except Exception as e:
         log.error("nba_transform_load_failed", error=str(e))
 
-    # Football
+    # NBA players
+    try:
+        nba_dir = PROJECT_ROOT / settings.storage.bronze_path / "basketball"
+        if nba_dir.exists():
+            nba_player_df = read_parquet_dir(nba_dir, pattern="player_stats.parquet")
+            if not nba_player_df.empty:
+                silver = NbaPlayerTransformer().transform(nba_player_df)
+                if not silver.empty:
+                    write_parquet(silver, silver_path("basketball", "player_stats"))
+                    loader.load_dataframe(silver, "nba_player_games", mode="replace")
+                    log.info("nba_players_loaded", rows=len(silver))
+    except FileNotFoundError:
+        log.info("no_nba_player_bronze_data")
+    except Exception as e:
+        log.error("nba_player_transform_load_failed", error=str(e))
+
+    # NFL games
     try:
         football_dir = PROJECT_ROOT / settings.storage.bronze_path / "football"
         if football_dir.exists():
-            football_df = read_parquet_dir(football_dir)
-            if not football_df.empty:
-                game_silver = NflGameTransformer().transform(football_df)
+            games_df = read_parquet_dir(football_dir, pattern="games.parquet")
+            if not games_df.empty:
+                game_silver = NflGameTransformer().transform(games_df)
                 if not game_silver.empty:
+                    write_parquet(game_silver, silver_path("football", "games"))
                     loader.load_dataframe(game_silver, "nfl_games", mode="replace")
                     log.info("nfl_games_loaded", rows=len(game_silver))
+    except FileNotFoundError:
+        log.info("no_nfl_game_bronze_data")
+    except Exception as e:
+        log.error("nfl_game_transform_load_failed", error=str(e))
 
-                player_silver = NflPlayerTransformer().transform(football_df)
+    # NFL players
+    try:
+        football_dir = PROJECT_ROOT / settings.storage.bronze_path / "football"
+        if football_dir.exists():
+            players_df = read_parquet_dir(football_dir, pattern="player_stats.parquet")
+            if not players_df.empty:
+                player_silver = NflPlayerTransformer().transform(players_df)
                 if not player_silver.empty:
+                    write_parquet(player_silver, silver_path("football", "player_stats"))
                     loader.load_dataframe(player_silver, "nfl_players", mode="replace")
                     log.info("nfl_players_loaded", rows=len(player_silver))
+    except FileNotFoundError:
+        log.info("no_nfl_player_bronze_data")
     except Exception as e:
-        log.error("nfl_transform_load_failed", error=str(e))
+        log.error("nfl_player_transform_load_failed", error=str(e))
 
 
 def build_gold() -> None:

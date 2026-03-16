@@ -40,13 +40,17 @@ def sample_nba_game_log():
 
 @pytest.fixture
 def sample_nba_player_log():
-    """Sample nba_api PlayerGameLog response (matches real API — no PLAYER_NAME/TEAM columns)."""
+    """Sample nba_api LeagueGameLog (player mode) response."""
     return [
         {
-            "Game_ID": "0022400001",
-            "GAME_DATE": "2024-10-22",
-            "Player_ID": 2544,
             "SEASON_ID": "22024",
+            "PLAYER_ID": 2544,
+            "PLAYER_NAME": "LeBron James",
+            "TEAM_ID": 1610612747,
+            "TEAM_ABBREVIATION": "LAL",
+            "TEAM_NAME": "Los Angeles Lakers",
+            "GAME_ID": "0022400001",
+            "GAME_DATE": "2024-10-22",
             "MATCHUP": "LAL vs. BOS",
             "WL": "W",
             "MIN": 36.0,
@@ -237,7 +241,7 @@ def sample_nfl_player_stats():
                 "player_id": "00-0036442",
                 "player_name": "P.Mahomes",
                 "player_display_name": "Patrick Mahomes",
-                "recent_team": "KC",
+                "team": "KC",
                 "position": "QB",
                 "week": 1,
                 "completions": 20,
@@ -268,7 +272,7 @@ def sample_nfl_player_stats():
                 "player_id": "00-0039337",
                 "player_name": "J.Hurts",
                 "player_display_name": "Jalen Hurts",
-                "recent_team": "PHI",
+                "team": "PHI",
                 "position": "QB",
                 "week": 1,
                 "completions": 18,
@@ -299,7 +303,7 @@ def sample_nfl_player_stats():
                 "player_id": "00-0036442",
                 "player_name": "P.Mahomes",
                 "player_display_name": "Patrick Mahomes",
-                "recent_team": "KC",
+                "team": "KC",
                 "position": "QB",
                 "week": 2,
                 "completions": 18,

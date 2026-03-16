@@ -33,6 +33,22 @@ def extract_nba_games(**context):
     return len(df)
 
 
+def extract_nba_player_stats(**context):
+    from datetime import date
+
+    from sports_pipeline.extractors.nba.player_extractor import NbaPlayerExtractor
+    from sports_pipeline.storage.parquet_store import write_parquet
+    from sports_pipeline.storage.paths import bronze_path
+
+    season = context["params"].get("season", "2024-25")
+    extractor = NbaPlayerExtractor()
+    df = extractor.extract(season=season)
+    if not df.empty:
+        path = bronze_path("basketball", "player_stats", season, date.today())
+        write_parquet(df, path)
+    return len(df)
+
+
 def extract_nba_team_stats(**context):
     from datetime import date
 
@@ -160,32 +176,49 @@ def extract_nfl_team_stats(**context):
 def transform_and_load(**context):
     from sports_pipeline.config import PROJECT_ROOT, get_settings
     from sports_pipeline.loaders.duckdb_loader import DuckDBLoader
-    from sports_pipeline.storage.parquet_store import read_parquet_dir
+    from sports_pipeline.storage.parquet_store import read_parquet_dir, write_parquet
+    from sports_pipeline.storage.paths import silver_path
     from sports_pipeline.transformers.nba.game_transformer import NbaGameTransformer
     from sports_pipeline.transformers.soccer.match_transformer import SoccerMatchTransformer
 
     loader = DuckDBLoader()
 
-    # Transform and load NBA
+    # Transform and load NBA games
     try:
         nba_bronze_dir = PROJECT_ROOT / get_settings().storage.bronze_path / "basketball"
         if nba_bronze_dir.exists():
-            nba_df = read_parquet_dir(nba_bronze_dir)
+            nba_df = read_parquet_dir(nba_bronze_dir, pattern="games.parquet")
             nba_transformer = NbaGameTransformer()
             nba_silver = nba_transformer.transform(nba_df)
             if not nba_silver.empty:
+                write_parquet(nba_silver, silver_path("basketball", "games"))
                 loader.load_dataframe(nba_silver, "nba_games", mode="replace")
     except Exception as e:
-        print(f"NBA transform/load error: {e}")
+        print(f"NBA game transform/load error: {e}")
+
+    # Transform and load NBA players
+    try:
+        from sports_pipeline.transformers.nba.player_transformer import NbaPlayerTransformer
+
+        nba_bronze_dir = PROJECT_ROOT / get_settings().storage.bronze_path / "basketball"
+        if nba_bronze_dir.exists():
+            nba_player_df = read_parquet_dir(nba_bronze_dir, pattern="player_stats.parquet")
+            nba_player_silver = NbaPlayerTransformer().transform(nba_player_df)
+            if not nba_player_silver.empty:
+                write_parquet(nba_player_silver, silver_path("basketball", "player_stats"))
+                loader.load_dataframe(nba_player_silver, "nba_player_games", mode="replace")
+    except Exception as e:
+        print(f"NBA player transform/load error: {e}")
 
     # Transform and load Soccer
     try:
         soccer_bronze_dir = PROJECT_ROOT / get_settings().storage.bronze_path / "soccer"
         if soccer_bronze_dir.exists():
-            soccer_df = read_parquet_dir(soccer_bronze_dir)
+            soccer_df = read_parquet_dir(soccer_bronze_dir, pattern="matches_*.parquet")
             soccer_transformer = SoccerMatchTransformer()
             soccer_silver = soccer_transformer.transform(soccer_df)
             if not soccer_silver.empty:
+                write_parquet(soccer_silver, silver_path("soccer", "matches"))
                 loader.load_dataframe(soccer_silver, "soccer_matches", mode="replace")
     except Exception as e:
         print(f"Soccer transform/load error: {e}")
@@ -197,16 +230,20 @@ def transform_and_load(**context):
 
         football_bronze_dir = PROJECT_ROOT / get_settings().storage.bronze_path / "football"
         if football_bronze_dir.exists():
-            football_df = read_parquet_dir(football_bronze_dir)
-            if not football_df.empty:
+            games_df = read_parquet_dir(football_bronze_dir, pattern="games.parquet")
+            if not games_df.empty:
                 nfl_game_transformer = NflGameTransformer()
-                nfl_game_silver = nfl_game_transformer.transform(football_df)
+                nfl_game_silver = nfl_game_transformer.transform(games_df)
                 if not nfl_game_silver.empty:
+                    write_parquet(nfl_game_silver, silver_path("football", "games"))
                     loader.load_dataframe(nfl_game_silver, "nfl_games", mode="replace")
 
+            players_df = read_parquet_dir(football_bronze_dir, pattern="player_stats.parquet")
+            if not players_df.empty:
                 nfl_player_transformer = NflPlayerTransformer()
-                nfl_player_silver = nfl_player_transformer.transform(football_df)
+                nfl_player_silver = nfl_player_transformer.transform(players_df)
                 if not nfl_player_silver.empty:
+                    write_parquet(nfl_player_silver, silver_path("football", "player_stats"))
                     loader.load_dataframe(nfl_player_silver, "nfl_players", mode="replace")
     except Exception as e:
         print(f"NFL transform/load error: {e}")
@@ -235,10 +272,13 @@ with DAG(
 ) as dag:
     with TaskGroup("nba_extraction") as nba_group:
         nba_games = PythonOperator(task_id="extract_nba_games", python_callable=extract_nba_games)
+        nba_players = PythonOperator(
+            task_id="extract_nba_player_stats", python_callable=extract_nba_player_stats
+        )
         nba_teams = PythonOperator(
             task_id="extract_nba_team_stats", python_callable=extract_nba_team_stats
         )
-        [nba_games, nba_teams]
+        [nba_games, nba_players, nba_teams]
 
     with TaskGroup("soccer_extraction") as soccer_group:
         fbref_matches = PythonOperator(

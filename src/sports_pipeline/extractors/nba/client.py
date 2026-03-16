@@ -36,12 +36,32 @@ class NbaApiClient:
     def get_league_game_log(
         self, season: str, season_type: str = "Regular Season"
     ) -> list[dict[str, Any]]:
-        """Fetch all games for a season."""
+        """Fetch all team-level games for a season."""
         self._limiter.acquire()
         log.info("fetching_league_game_log", season=season, season_type=season_type)
         result = LeagueGameLog(
             season=season,
             season_type_all_star=season_type,
+            timeout=30,
+        )
+        return result.get_normalized_dict()["LeagueGameLog"]
+
+    @retry(
+        retry=retry_if_exception_type((ConnectionError, TimeoutError)),
+        wait=wait_exponential(multiplier=1, min=2, max=30),
+        stop=stop_after_attempt(5),
+        reraise=True,
+    )
+    def get_league_player_game_log(
+        self, season: str, season_type: str = "Regular Season"
+    ) -> list[dict[str, Any]]:
+        """Fetch all player-level game logs for a season in a single call."""
+        self._limiter.acquire()
+        log.info("fetching_league_player_game_log", season=season, season_type=season_type)
+        result = LeagueGameLog(
+            season=season,
+            season_type_all_star=season_type,
+            player_or_team_abbreviation="P",
             timeout=30,
         )
         return result.get_normalized_dict()["LeagueGameLog"]
