@@ -17,49 +17,43 @@ class NbaPlayerExtractor(BaseExtractor):
         super().__init__()
         self.client = client or NbaApiClient()
 
-    def extract(self, player_id: int, season: str, player_name: str = "") -> pd.DataFrame:
-        """Extract game log for a single player.
+    def extract(self, season: str) -> pd.DataFrame:
+        """Extract all player game logs for a season.
 
         Args:
-            player_id: NBA player ID
             season: NBA season string, e.g. "2024-25"
-            player_name: Player's display name (the API response does not include it)
 
         Returns:
             DataFrame with bronze-level player game data.
         """
-        self.log.info("extracting_player_games", player_id=player_id, season=season)
-        raw = self.client.get_player_game_log(player_id=player_id, season=season)
+        self.log.info("extracting_nba_player_games", season=season)
+        raw = self.client.get_league_player_game_log(season=season)
 
         if not raw:
-            self.log.warning("no_player_games_found", player_id=player_id, season=season)
+            self.log.warning("no_player_games_found", season=season)
             return pd.DataFrame()
 
         df = pd.DataFrame(raw)
-        return self._transform_raw(df, season, player_name)
+        result = self._transform_raw(df, season)
+        self.log.info("extracted_nba_player_games", season=season, count=len(result))
+        return result
 
-    def _transform_raw(self, df: pd.DataFrame, season: str, player_name: str = "") -> pd.DataFrame:
-        """Map raw nba_api columns to bronze schema.
-
-        Note: The PlayerGameLog endpoint does not return PLAYER_NAME, TEAM_ID,
-        or TEAM_NAME. The player name must be passed by the caller, and the
-        team abbreviation is derived from the MATCHUP column.
-        """
+    def _transform_raw(self, df: pd.DataFrame, season: str) -> pd.DataFrame:
+        """Map raw nba_api LeagueGameLog (player mode) columns to bronze schema."""
         now = datetime.now(UTC)
 
         df["is_home"] = df["MATCHUP"].str.contains("vs.", regex=False)
-        # MATCHUP is like "LAL vs. HOU" or "LAL @ BOS" — team abbrev is first token
-        df["_team_abbr"] = df["MATCHUP"].str.split(r"\s+", n=1).str[0]
 
         return pd.DataFrame(
             {
                 "extract_timestamp": now,
                 "season": season,
-                "game_id": df["Game_ID"],
+                "game_id": df["GAME_ID"],
                 "game_date": pd.to_datetime(df["GAME_DATE"]),
-                "player_id": df["Player_ID"],
-                "player_name": player_name,
-                "team_name": df["_team_abbr"],
+                "player_id": df["PLAYER_ID"],
+                "player_name": df["PLAYER_NAME"],
+                "team_id": df["TEAM_ID"],
+                "team_name": df["TEAM_NAME"],
                 "is_home": df["is_home"],
                 "minutes": df["MIN"],
                 "points": df["PTS"],

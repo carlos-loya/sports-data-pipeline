@@ -163,14 +163,14 @@ class TestNbaPipeline:
     def test_player_extract_transform_roundtrip(self, sample_nba_player_log, tmp_path):
         """Verify player extractor output survives parquet round-trip."""
         client = MagicMock()
-        client.get_player_game_log.return_value = sample_nba_player_log
+        client.get_league_player_game_log.return_value = sample_nba_player_log
         extractor = NbaPlayerExtractor(client=client)
 
-        bronze = extractor.extract(player_id=2544, season="2024-25", player_name="LeBron James")
+        bronze = extractor.extract(season="2024-25")
 
         assert not bronze.empty
         assert bronze.iloc[0]["player_name"] == "LeBron James"
-        assert bronze.iloc[0]["team_name"] == "LAL"
+        assert bronze.iloc[0]["team_name"] == "Los Angeles Lakers"
 
         # Parquet round-trip
         path = tmp_path / "nba" / "players.parquet"
@@ -178,7 +178,7 @@ class TestNbaPipeline:
         read_back = read_parquet(path)
 
         assert read_back.iloc[0]["player_name"] == "LeBron James"
-        assert read_back.iloc[0]["team_name"] == "LAL"
+        assert read_back.iloc[0]["team_name"] == "Los Angeles Lakers"
         assert pd.api.types.is_numeric_dtype(read_back["points"])
 
 

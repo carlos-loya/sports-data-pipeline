@@ -107,6 +107,18 @@ class TestNflPlayerExtractor:
 
         assert result.empty
 
+    def test_extract_team_column_populated(self, sample_nfl_player_stats):
+        """Verify team column is populated from source data (not null)."""
+        client = MagicMock()
+        client.get_player_stats.return_value = sample_nfl_player_stats
+        extractor = NflPlayerExtractor(client=client)
+
+        result = extractor.extract(season=2024)
+
+        assert result["team"].notna().all(), "team column should not have null values"
+        assert result.iloc[0]["team"] == "KC"
+        assert result.iloc[1]["team"] == "PHI"
+
     def test_player_stats_columns(self, sample_nfl_player_stats):
         client = MagicMock()
         client.get_player_stats.return_value = sample_nfl_player_stats

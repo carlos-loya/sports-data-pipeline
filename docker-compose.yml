@@ -4,10 +4,11 @@ x-airflow-common: &airflow-common
   build: .
   environment:
     - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+    - AIRFLOW__CORE__AUTH_MANAGER=airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
     - AIRFLOW__CORE__DAGS_FOLDER=/app/dags
     - AIRFLOW__CORE__LOAD_EXAMPLES=False
-    - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+    - AIRFLOW__API__EXPOSE_CONFIG=True
     - PYTHONPATH=/app/src
     - ENVIRONMENT=${ENVIRONMENT:-dev}
     - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
@@ -41,15 +42,15 @@ services:
     entrypoint: /bin/bash
     command: >
       -c "
-      uv run airflow db init &&
+      uv run airflow db migrate &&
       uv run airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com
       "
     restart: "no"
 
-  airflow-webserver:
+  airflow-api-server:
     <<: *airflow-common
     entrypoint: uv
-    command: run airflow webserver --port 8080
+    command: run airflow api-server --port 8080
     ports:
       - "8080:8080"
     healthcheck:
@@ -57,11 +58,21 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
 
   airflow-scheduler:
     <<: *airflow-common
     entrypoint: uv
     command: run airflow scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:

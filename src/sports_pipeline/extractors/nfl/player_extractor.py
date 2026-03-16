@@ -56,7 +56,7 @@ class NflPlayerExtractor(BaseExtractor):
                 "player_id": df["player_id"],
                 "player_name": df["player_name"],
                 "player_display_name": df["player_display_name"],
-                "team": df.get("recent_team"),
+                "team": df.get("team"),
                 "position": df.get("position"),
                 # Passing
                 "completions": df.get("completions"),
